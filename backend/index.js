@@ -5,6 +5,7 @@ const app = express();
 require('dotenv').config();
 
 app.use(express.json());
+
 app.use(cors({ origin: "http://localhost:5173" }));
 
 //mongoDB connection
@@ -24,7 +25,7 @@ const authRoutes = require('./routes/authRoutes.js');
 
 
 //Routes
-app.use('/api', authRoutes);
+app.use('/auth', authRoutes);
 
 
 app.listen(6969,() => {
