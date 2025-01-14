@@ -7,6 +7,7 @@ import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 import { useState } from "react";
 import NavBar from "./pages/NavBar";
+import Room from "./pages/Room";
 function App() {
   const [isLogin, setIsLogin] = useState(localStorage.getItem("isLogin") === "true");
 
@@ -25,6 +26,14 @@ function App() {
           element={ 
             <ProtectedRoute>
               <Home />
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/room"
+          element={
+            <ProtectedRoute>
+              <Room/>
             </ProtectedRoute>
           }
         />
