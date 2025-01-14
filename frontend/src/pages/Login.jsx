@@ -10,10 +10,13 @@ const Login = ({ setIsLogin }) => {
   const handle = async (e) => {
     e.preventDefault();
     const resp = await login(formData);
-    if (resp.message === "Logged In successfully") {
+    console.log(resp.token);
+    console.log(resp.status);
+    if (resp) {
       setIsLogin(true);
       localStorage.setItem('isLogin', 'true');
       localStorage.setItem('email', formData.email);
+      localStorage.setItem('token',resp.token);
       nav('/home');
     } else {
       alert(resp.message);
