@@ -2,17 +2,33 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Editor } from '@monaco-editor/react';
 import { executeCode } from '../assets/api';
 import { io } from 'socket.io-client';
+import { useNavigate } from 'react-router-dom';
 const socket = io.connect("http://localhost:6969/")
 const CodeEditor = () => {
+  const nav = useNavigate();  
   const [value, setValue] = useState('');
   const [output, setOutput] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [questions, setQuestions] = useState([]);
+  const [leave,setLeave] = useState(false);
   const editorRef = useRef();
   const code = localStorage.getItem('roomCode');
   const client = localStorage.getItem('userId');
-  // Fetch the questions (you can replace this with an API call)
+  const leaveRoom = () => {
+    socket.emit('leave-room', { code, client });
+    localStorage.removeItem('roomCode');
+    localStorage.removeItem('userId');
+    console.log(`${client} left room ${code}`);
+    setLeave(!localStorage.getItem('leave'));
+    localStorage.removeItem('leave');
+  };
   useEffect(() => {
+    setLeave(localStorage.getItem('leave'));
+    if(!code || !client){
+      alert('Please login and join a room first');
+      nav('/home');
+      return;
+    }
     const dummyQuestions = [
       {
         title: "Two Sum",
@@ -35,6 +51,11 @@ const CodeEditor = () => {
         setValue(change);
       }
     })
+    socket.on('leave-room', ({ code, client }) => {
+      localStorage.removeItem('roomCode');
+      localStorage.removeItem('userId');
+      console.log(`${client} left room ${code}`);
+    });
     return () => {
       socket.off('editor');
     };
@@ -66,7 +87,7 @@ const CodeEditor = () => {
     socket.emit('editor',{change:value,code});
   }
   return (
-    <div className="flex flex-col items-center justify-center w-full h-screen p-4">
+    (leave)? (<div className="flex flex-col items-center justify-center w-full h-screen p-4">
       <div className="flex w-full justify-between mb-4">
         <div className="w-1/3 p-4 bg-gray-100 border rounded-md">
           <h2 className="text-xl font-bold mb-2">{currentQuestion?.title}</h2>
@@ -87,6 +108,7 @@ const CodeEditor = () => {
 
         {/* Right Side: Code Editor */}
         <div className="w-2/3 p-4">
+        {/* <button type='button' onClick={leaveRoom}>Leave Room</button> */}
           <Editor
             height="65vh"
             width="100%"
@@ -106,7 +128,10 @@ const CodeEditor = () => {
           <p>{output}</p>
         </div>
       )}
-    </div>
+    </div>):
+    (
+      <div>You left the room</div>
+    )
   );
 };
 
