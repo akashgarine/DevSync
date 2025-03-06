@@ -6,7 +6,7 @@ export const userStore = create((set) => ({
   setUser: (user) => set({ user }),
 
   sign: async (userData) => {
-    if (!userData.name || !userData.email || !userData.password) {
+    if (!userData.username || !userData.email || !userData.password) {
       return { message: "Please enter all the fields" };
     }
 
@@ -18,12 +18,13 @@ export const userStore = create((set) => ({
       return { message: "Error occurred while signing up" };
     }
   },
-  login: async (userData) =>{
-    if(!userData.email || !userData.password){
+  login: async (Udata) =>{
+    if(!Udata.email || !Udata.password){
         return {message:"Please enter all the fields"};
     }
     try{
-        const response = await axios.post("http://localhost:6969/login",userData);
+        const response = await axios.post("http://localhost:6969/login",Udata);
+        console.log(response);
         return response.data;
     }
     catch(error){

@@ -3,14 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { userStore } from '../store/userStore';
 
 const SignUp = () => {
-  const [formData, setformData] = useState({ name: '', email: '', password: '' });
+  const [formData, setformData] = useState({ username: '', email: '', password: '' });
   const { sign } = userStore();
   const nav = useNavigate();
 
   const handleSign = async (e) => {
     e.preventDefault();
+    console.log(formData.username);
+    console.log(formData.password);
+    console.log(formData.email);
     const res= await sign (formData);
-    if(res.message === "User created") { nav("/login"); }
+    console.log(res);
+    if(res.status === 200) { nav("/login"); }
     else { alert(res.message); }
   }
 
@@ -19,9 +23,9 @@ const SignUp = () => {
       <form onSubmit={handleSign}>
         <label>Name :</label>
         <input
-          name="name"
-          value={formData.name}  
-          onChange={(e) => setformData({ ...formData, name: e.target.value })}
+          name="username"
+          value={formData.username}  
+          onChange={(e) => setformData({ ...formData, username: e.target.value })}
         />
         
         <label>Email :</label>
