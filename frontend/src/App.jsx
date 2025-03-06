@@ -1,4 +1,10 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 import CodeCollab from "./pages/CodeCollab";
 import Test from "./pages/Test";
 import Home from "./pages/Home";
@@ -7,33 +13,38 @@ import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 import { useState } from "react";
 import NavBar from "./pages/NavBar";
+import NotFound from "./pages/NotFound";
 import Room from "./pages/Room";
+import QuizCreate from "./pages/QuizCreate";
 function App() {
-  const [isLogin, setIsLogin] = useState(localStorage.getItem("isLogin") === "true");
+  const [isLogin, setIsLogin] = useState(
+    localStorage.getItem("isLogin") === "true"
+  );
+  const ProtectedRoute = ({ children }) => {
+    return isLogin ? children : <Navigate to="/login" replace />;
+  };
 
-  const ProtectedRoute = ({children}) => {
-    return isLogin ? children : <Navigate to="/login" replace />
-  }
-  
   return (
     <Router>
-      <NavBar  />
+      <NavBar />
       <Routes>
         <Route path="/signup" element={<SignUp />} />
         <Route path="/login" element={<Login setIsLogin={setIsLogin} />} />
+        <Route path="*" element={<NotFound />} />
+        <Route path="/admin/quiz" element={<QuizCreate />} />
         <Route
           path="/home"
-          element={ 
+          element={
             <ProtectedRoute>
               <Home />
             </ProtectedRoute>
           }
         />
-        <Route 
+        <Route
           path="/room"
           element={
             <ProtectedRoute>
-              <Room/>
+              <Room />
             </ProtectedRoute>
           }
         />
@@ -63,7 +74,6 @@ function App() {
         />
       </Routes>
     </Router>
-
   );
 }
 

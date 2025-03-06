@@ -2,6 +2,7 @@ import React from 'react'
 
 const Room = () => {
     function display(){
+        localStorage.setItem('leave',false);
         console.log(localStorage.getItem('roomCode'));
     }
   return (
