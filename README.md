@@ -6,5 +6,3 @@ TODO
 4. OAuth
 5. change to Cookies insted of JWT
 
-Extra Features 
-1. Report for Team or Class Web Scrapping
