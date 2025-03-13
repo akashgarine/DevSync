@@ -3,46 +3,50 @@ import { useNavigate } from 'react-router-dom';
 import { userStore } from '../store/userStore';
 
 const SignUp = () => {
-  const [formData, setformData] = useState({ username: '', email: '', password: '' });
+  const [formData, setFormData] = useState({ username: '', email: '', password: '' });
   const { sign } = userStore();
   const nav = useNavigate();
 
   const handleSign = async (e) => {
     e.preventDefault();
-    console.log(formData.username);
-    console.log(formData.password);
-    console.log(formData.email);
-    const res= await sign (formData);
-    console.log(res);
-    if(res.status === 200) { nav("/login"); }
-    else { alert(res.message); }
-  }
+    const res = await sign(formData);
+    if (res.status === 200) {
+      nav("/login");
+    } else {
+      alert(res.message);
+    }
+  };
 
   return (
-    <div>
-      <form onSubmit={handleSign}>
-        <label>Name :</label>
-        <input
-          name="username"
+    <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
+      <form onSubmit={handleSign} className="bg-gray-800 p-8 rounded-lg shadow-lg w-96">
+        <h2 className="text-2xl font-bold mb-6">Sign Up</h2>
+        <label className="block mb-2">Name:</label>
+        <input 
+          className="w-full p-2 mb-4 bg-gray-700 border border-gray-600 rounded" 
+          name="username" 
           value={formData.username}  
-          onChange={(e) => setformData({ ...formData, username: e.target.value })}
+          onChange={(e) => setFormData({ ...formData, username: e.target.value })}
         />
         
-        <label>Email :</label>
-        <input
-          name="email"
+        <label className="block mb-2">Email:</label>
+        <input 
+          className="w-full p-2 mb-4 bg-gray-700 border border-gray-600 rounded" 
+          name="email" 
           value={formData.email}  
-          onChange={(e) => setformData({ ...formData, email: e.target.value })}
+          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
         />
         
-        <label>Password :</label>
-        <input
-          name="password"
+        <label className="block mb-2">Password:</label>
+        <input 
+          className="w-full p-2 mb-6 bg-gray-700 border border-gray-600 rounded" 
+          type="password"
+          name="password" 
           value={formData.password}  
-          onChange={(e) => setformData({ ...formData, password: e.target.value })}
+          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
         />
         
-        <button type="submit">Submit</button>
+        <button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded">Sign Up</button>
       </form>
     </div>
   );
