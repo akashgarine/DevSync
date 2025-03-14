@@ -68,7 +68,7 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(6969, () => {
+server.listen(3000, () => {
   connectDB();
-  console.log("I 'm listening on port 6969!");
+  console.log("listening on port 3000!");
 });

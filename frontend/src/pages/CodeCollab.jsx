@@ -3,7 +3,7 @@ import { Editor } from '@monaco-editor/react';
 import { executeCode } from '../assets/api';
 import { io } from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
-const socket = io.connect("http://localhost:6969/")
+const socket = io.connect("http://localhost:3000/")
 const CodeEditor = () => {
   const nav = useNavigate();  
   const [value, setValue] = useState('');

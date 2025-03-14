@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import { MessageSquare, Send, LogOut, Users } from "lucide-react";
 
-const socket = io.connect("http://localhost:6969");
+const socket = io.connect("http://localhost:3000");
 
 const Forums = () => {
   const [roomCode, setRoomCode] = useState(null);

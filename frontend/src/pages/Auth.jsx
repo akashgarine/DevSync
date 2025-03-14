@@ -1,33 +1,48 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { userStore } from '../store/userStore';
+import axios from 'axios';
 
 const Auth = ({ setIsLogin }) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [formData, setFormData] = useState({ username: '', email: '', password: '' });
   const nav = useNavigate();
-  const { login, sign } = userStore();
 
-  const handleSubmit = async (e) => {
+  const handleAuth = async (e) => {
     e.preventDefault();
-    if (isSignUp) {
-      const res = await sign(formData);
-      if (res.status === 200) {
-        setIsSignUp(false);
+    
+    if (!formData.email || !formData.password || (isSignUp && !formData.username)) {
+      return alert("Please enter all the fields");
+    }
+
+    try {
+      const url = isSignUp ? "http://localhost:3000/signup" : "http://localhost:/login";
+      const response = await axios.post(url, formData);
+      console.log("Response:", response); // Debugging
+
+      if (response.data.status === 200) {
+        if (isSignUp) {
+          setIsSignUp(false);
+          setFormData({ username: '', email: '', password: '' });
+          localStorage.clear(); // Clear local storage after signup
+        } else {
+          const { token } = response.data; // Extract token properly
+          if (token) {
+            localStorage.setItem('isLogin', 'true');
+            localStorage.setItem('email', formData.email);
+            localStorage.setItem('token', token);
+            console.log('Stored Token:', localStorage.getItem('token')); // Debugging
+            setIsLogin(true);
+            nav('/home');
+          } else {
+            alert("Login successful, but no token received!");
+          }
+        }
       } else {
-        alert(res.message);
+        alert(response.data.message);
       }
-    } else {
-      const resp = await login(formData);
-      if (resp && resp.status === 200) {
-        setIsLogin(true);
-        localStorage.setItem('isLogin', 'true');
-        localStorage.setItem('email', formData.email);
-        localStorage.setItem('token', resp.token);
-        nav('/home');
-      } else {
-        alert(resp.message);
-      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Error occurred while processing your request");
     }
   };
 
@@ -40,7 +55,7 @@ const Auth = ({ setIsLogin }) => {
         {isSignUp ? 'Sign Up' : 'Login'} to CodeCollab
       </h2>
       <div className="bg-[#1E293B] p-8 rounded-2xl shadow-xl w-full max-w-md text-center">
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleAuth}>
           {isSignUp && (
             <div className="mb-4">
               <label className="block text-gray-300 mb-2 text-left text-lg">Username</label>
@@ -80,7 +95,11 @@ const Auth = ({ setIsLogin }) => {
           <button
             type="button"
             className="text-purple-400 hover:underline"
-            onClick={() => setIsSignUp(!isSignUp)}
+            onClick={() => {
+              setIsSignUp(!isSignUp);
+              setFormData({ username: '', email: '', password: '' });
+              localStorage.clear();
+            }}
           >
             {isSignUp ? 'Login' : 'Sign Up'}
           </button>
