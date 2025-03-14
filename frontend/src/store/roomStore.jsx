@@ -21,7 +21,7 @@ const roomStore = create((set) => ({
     localStorage.setItem('userId', userId); 
     console.log(userId);
     try {
-      const resp = await axios.post("http://localhost:6969/join-room", { roomCode, userId });
+      const resp = await axios.post("http://localhost:3000/join-room", { roomCode, userId });
       if (resp.data.success === false) {
         return { success: resp.data.success, message: resp.data.message };
       } else {
@@ -40,7 +40,7 @@ const roomStore = create((set) => ({
     const userId = localStorage.getItem('userId') || nanoid(6);
     localStorage.setItem('userId', userId); 
     try {
-      const resp = await axios.post("http://localhost:6969/create-room", { userId });
+      const resp = await axios.post("http://localhost:3000/create-room", { userId });
       if (resp.data.success === false) {
         return { success: resp.data.success, message: resp.data.message };
       } else {

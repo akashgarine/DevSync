@@ -21,21 +21,19 @@ function App() {
   );
   
   const ProtectedRoute = ({ children }) => {
-    return isLogin ? children : <Navigate to="/auth" replace />;
+    return isLogin ? children : <Navigate to="/login" replace />;
   };
 
   return (
     <Router>
       <NavBar />
       <Routes>
-        <Route path="/auth" element={<Auth setIsLogin={setIsLogin} />} />
-        <Route path="*" element={<NotFound />} />
-        <Route path="/admin/quiz" element={<QuizCreate />} />
-        <Route
-          path="/home"
+        <Route path="/login" element={<Auth setIsLogin={setIsLogin} />} />
+        <Route path="/" element={<Home/>} />
+        <Route path="/admin/quiz"
           element={
             <ProtectedRoute>
-              <Home />
+              <QuizCreate />
             </ProtectedRoute>
           }
         />
@@ -71,6 +69,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
   );

@@ -9,7 +9,7 @@ const NavBar = () => {
     <nav>
       <ul className="text-center flex justify-evenly my-10">
         <li>
-          <Link to="/home">Home</Link>
+          <Link to="/">Home</Link>
         </li>
         <li>
           <Link to="/collab">Collab</Link>
