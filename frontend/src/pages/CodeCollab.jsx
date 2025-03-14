@@ -1,72 +1,96 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { Editor } from '@monaco-editor/react';
-import { executeCode } from '../assets/api';
-import { io } from 'socket.io-client';
-import { useNavigate } from 'react-router-dom';
-const socket = io.connect("http://localhost:6969/")
-const CodeEditor = () => {
-  const nav = useNavigate();  
-  const [value, setValue] = useState('');
+import React, { useRef, useState, useEffect } from "react";
+import { Editor } from "@monaco-editor/react";
+import { executeCode } from "../assets/api";
+import { io } from "socket.io-client";
+import { useNavigate } from "react-router-dom";
+import { RotateCcw, Eye } from "lucide-react";
+
+const socket = io.connect("http://localhost:6969/");
+
+const CodeCollab = () => {
+  const nav = useNavigate();
+  const [value, setValue] = useState("");
   const [output, setOutput] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [questions, setQuestions] = useState([]);
-  const [leave,setLeave] = useState(false);
+  const [leave, setLeave] = useState(false);
   const editorRef = useRef();
-  const code = localStorage.getItem('roomCode');
-  const client = localStorage.getItem('userId');
+  const code = localStorage.getItem("roomCode");
+  const client = localStorage.getItem("userId");
+
   const leaveRoom = () => {
-    socket.emit('leave-room', { code, client });
-    localStorage.removeItem('roomCode');
-    localStorage.removeItem('userId');
+    socket.emit("leave-room", { code, client });
+    localStorage.removeItem("roomCode");
+    localStorage.removeItem("userId");
     console.log(`${client} left room ${code}`);
-    setLeave(!localStorage.getItem('leave'));
-    localStorage.removeItem('leave');
+    setLeave(!localStorage.getItem("leave"));
+    localStorage.removeItem("leave");
   };
+
   useEffect(() => {
-    setLeave(localStorage.getItem('leave'));
-    if(!code || !client){
-      alert('Please login and join a room first');
-      nav('/home');
+    setLeave(localStorage.getItem("leave"));
+    if (!code || !client) {
+      alert("Please login and join a room first");
+      nav("/home");
       return;
     }
     const dummyQuestions = [
       {
         title: "Two Sum",
-        description: "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.You may assume that each input would have exactly one solution, and you may not use the same element twice.You can return the answer in any order."
+        description:
+          "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target. You may assume that each input would have exactly one solution, and you may not use the same element twice. You can return the answer in any order.",
+        example: {
+          input: "nums = [2,7,11,15], target = 9",
+          output: "[0,1]",
+          explanation: "Because nums[0] + nums[1] == 9, we return [0, 1]",
+        },
       },
       {
         title: "Reverse a Linked List",
-        description: "Reverse a singly linked list."
+        description: "Reverse a singly linked list.",
+        example: {
+          input: "1->2->3->4->5->NULL",
+          output: "5->4->3->2->1->NULL",
+          explanation: "Reverse the direction of all pointers",
+        },
       },
       {
         title: "Valid Parentheses",
-        description: "Check if a string containing just the characters '(', ')', '{', '}', '[' and ']' is valid."
-      }
+        description:
+          "Check if a string containing just the characters '(', ')', '{', '}', '[' and ']' is valid.",
+        example: {
+          input: "s = '()'",
+          output: "true",
+          explanation: "The brackets match and are properly closed",
+        },
+      },
     ];
     setQuestions(dummyQuestions);
-    socket.emit('join-room', { roomCode: code, client });
+    socket.emit("join-room", { roomCode: code, client });
 
-    socket.on('editor', (change)=>{
-      if(change !== value){
+    socket.on("editor", (change) => {
+      if (change !== value) {
         setValue(change);
       }
-    })
-    socket.on('leave-room', ({ code, client }) => {
-      localStorage.removeItem('roomCode');
-      localStorage.removeItem('userId');
+    });
+
+    socket.on("leave-room", ({ code, client }) => {
+      localStorage.removeItem("roomCode");
+      localStorage.removeItem("userId");
       console.log(`${client} left room ${code}`);
     });
+
     return () => {
-      socket.off('editor');
+      socket.off("editor");
     };
-  }, [value,code]);
+  }, [value, code]);
 
   const onMount = (editor) => {
     editorRef.current = editor;
     editor.focus();
   };
 
-  const fn = async () => {
+  const runCode = async () => {
     const sourceCode = editorRef.current.getValue();
     if (!sourceCode) return;
     try {
@@ -76,63 +100,142 @@ const CodeEditor = () => {
       console.error(error);
     }
   };
-  // 
+
   const nextQuestion = () => {
-    setCurrentQuestionIndex((prevIndex) => (prevIndex + 1) % questions.length); // Loop back to first question after last one
+    setCurrentQuestionIndex((prevIndex) => (prevIndex + 1) % questions.length);
+  };
+
+  const previousQuestion = () => {
+    setCurrentQuestionIndex((prevIndex) =>
+      prevIndex === 0 ? questions.length - 1 : prevIndex - 1
+    );
   };
 
   const currentQuestion = questions[currentQuestionIndex];
-  const handleEditor = (value) =>{
+
+  const handleEditor = (value) => {
     setValue(value);
-    socket.emit('editor',{change:value,code});
-  }
+    socket.emit("editor", { change: value, code });
+  };
+
+  // if (leave) {
+  //   return (
+  //     <div className="min-h-screen bg-[#1a1a1a] text-white flex items-center justify-center">
+  //       <div className="text-center">
+  //         <h2 className="text-2xl font-bold mb-4">You've left the room</h2>
+  //         <button
+  //           onClick={() => nav("/home")}
+  //           className="px-6 py-2 bg-[#3b82f6] rounded-lg hover:bg-[#2563eb] transition duration-200"
+  //         >
+  //           Return Home
+  //         </button>
+  //       </div>
+  //     </div>
+  //   );
+  // }
+
   return (
-    (leave)? (<div className="flex flex-col items-center justify-center w-full h-screen p-4">
-      <div className="flex w-full justify-between mb-4">
-        <div className="w-1/3 p-4 bg-gray-100 border rounded-md">
-          <h2 className="text-xl font-bold mb-2">{currentQuestion?.title}</h2>
-          <p>{currentQuestion?.description}</p>
-          <button
-            className="mt-4 p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-            onClick={fn}
-          >
-            Run Code
-          </button>
-          <button
-            className="mt-2 ml-2 p-2 bg-green-500 text-white rounded-md hover:bg-green-600"
-            onClick={nextQuestion}
-          >
-            Next Question
-          </button>
+    <div className="min-h-screen bg-[#1a1a1a] text-white p-4">
+      <div className="flex gap-4 h-[calc(100vh-2rem)]">
+        {/* Problem Description Panel */}
+        <div className="w-[400px] bg-[#2a2a2a] rounded-lg p-6 flex flex-col">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold">Problem Description</h2>
+            <div className="flex gap-2">
+              <button
+                onClick={previousQuestion}
+                className="px-4 py-2 bg-[#3b82f6] rounded-lg hover:bg-[#2563eb] transition"
+              >
+                Previous
+              </button>
+              <button
+                onClick={nextQuestion}
+                className="px-4 py-2 bg-[#3b82f6] rounded-lg hover:bg-[#2563eb] transition"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-4 flex-grow overflow-y-auto">
+            <h3 className="text-xl font-semibold">{currentQuestion?.title}</h3>
+            <p className="text-[#93a3b8]">{currentQuestion?.description}</p>
+
+            <div className="mt-6">
+              <h4 className="font-semibold mb-2">Example:</h4>
+              <div className="bg-[#1a1a1a] rounded-lg p-4 space-y-2">
+                <p className="text-[#93a3b8]">
+                  Input: {currentQuestion?.example?.input}
+                </p>
+                <p className="text-[#93a3b8]">
+                  Output: {currentQuestion?.example?.output}
+                </p>
+                <p className="text-[#93a3b8]">
+                  Explanation: {currentQuestion?.example?.explanation}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Right Side: Code Editor */}
-        <div className="w-2/3 p-4">
-        {/* <button type='button' onClick={leaveRoom}>Leave Room</button> */}
-          <Editor
-            height="65vh"
-            width="100%"
-            theme="vs-dark"
-            defaultLanguage="java"
-            defaultValue={value}
-            onMount={onMount}
-            value={value}
-            onChange={handleEditor}
-          />
+        {/* Code Editor Panel */}
+        <div className="flex-1 flex flex-col">
+          <div className="bg-[#2a2a2a] rounded-lg p-4 mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <select
+                className="bg-[#1a1a1a] text-white px-4 py-2 rounded-lg border border-[#404040] focus:outline-none focus:border-[#3b82f6]"
+                defaultValue="javascript"
+              >
+                <option value="java">Java</option>
+              </select>
+              <button
+                onClick={runCode}
+                className="px-6 py-2 bg-[#2ea043] text-white rounded-lg hover:bg-[#2c974b] transition flex items-center gap-2"
+              >
+                Run Code
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <button className="p-2 text-[#93a3b8] hover:text-white transition">
+                <RotateCcw className="w-5 h-5" />
+              </button>
+              <button className="p-2 text-[#93a3b8] hover:text-white transition">
+                <Eye className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          <div className="flex-1 bg-[#2a2a2a] rounded-lg overflow-hidden">
+            <Editor
+              height="100%"
+              theme="vs-dark"
+              defaultLanguage="java"
+              value={value}
+              onChange={handleEditor}
+              onMount={onMount}
+              options={{
+                fontSize: 14,
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                lineNumbers: "on",
+                roundedSelection: false,
+                padding: { top: 16, bottom: 16 },
+                automaticLayout: true,
+              }}
+            />
+          </div>
+
+          {/* Console Output */}
+          <div className="h-[200px] bg-[#2a2a2a] rounded-lg mt-4 p-4">
+            <h3 className="text-lg font-semibold mb-2">Console Output:</h3>
+            <div className="font-mono text-[#93a3b8] whitespace-pre-wrap overflow-y-auto h-[calc(100%-2rem)]">
+              {output || "// Output will appear here after running the code"}
+            </div>
+          </div>
         </div>
       </div>
-
-      {/* Output */}
-      {output && (
-        <div className="w-full mt-4 p-4 bg-gray-200 rounded-md">
-          <p>{output}</p>
-        </div>
-      )}
-    </div>):
-    (
-      <div>You left the room</div>
-    )
+    </div>
   );
 };
 
-export default CodeEditor;
+export default CodeCollab;
