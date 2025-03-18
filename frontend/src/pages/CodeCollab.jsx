@@ -5,7 +5,7 @@ import { io } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
 import { RotateCcw, Eye } from "lucide-react";
 
-const socket = io.connect("http://localhost:6969/");
+const socket = io.connect("http://localhost:3000");
 
 const CodeCollab = () => {
   const nav = useNavigate();
@@ -26,7 +26,12 @@ const CodeCollab = () => {
     setLeave(!localStorage.getItem("leave"));
     localStorage.removeItem("leave");
   };
-
+  useEffect(() => {
+    window.scrollTo({
+      top: 150, 
+      behavior: "smooth", 
+    });
+  }, []);
   useEffect(() => {
     setLeave(localStorage.getItem("leave"));
     if (!code || !client) {

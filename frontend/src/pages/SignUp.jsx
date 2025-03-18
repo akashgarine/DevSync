@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { userStore } from '../store/userStore';
 
 const SignUp = () => {
-  const [formData, setFormData] = useState({ username: '', email: '', password: '' });
+  const [formData, setFormData] = useState({ username: '', email: '', password: '',role:'' });
   const { sign } = userStore();
   const nav = useNavigate();
 
@@ -45,7 +45,13 @@ const SignUp = () => {
           value={formData.password}  
           onChange={(e) => setFormData({ ...formData, password: e.target.value })}
         />
-        
+        <label className="block mb-2">Role:</label>
+        <input 
+          className="w-full p-2 mb-6 bg-gray-700 border border-gray-600 rounded" 
+          name="role" 
+          value={formData.role}  
+          onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+        />
         <button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded">Sign Up</button>
       </form>
     </div>
