@@ -2,13 +2,11 @@ import React, { useEffect, useState } from "react";
 import io from "socket.io-client";
 import { useNavigate } from "react-router-dom";
 import roomStore from "@/store/roomStore";
-import { ArrowDown, Check } from "lucide-react";
-import CodeSnippet from "./CodeSnippet";
-import Header from "./Header";
+import { ArrowDown, Check, Code2, MessageSquare, Play } from "lucide-react";
 
-const socket = io.connect("http://localhost:6969");
+const socket = io.connect("http://localhost:3000");
 
-const Home = () => {
+const App = () => {
   const nav = useNavigate();
   const { join, create } = roomStore();
   const [roomCode, setRoomCode] = useState("");
@@ -41,71 +39,74 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#1e2a47] to-[#111827] text-white flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-950 text-white flex flex-col items-center justify-center p-6">
       {/* Title & Subtitle */}
       <div className="text-center mb-8">
-        <h1 className="text-6xl font-bold text-[#8c9eff]">CodeCollab</h1>
+        <h1 className="text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
+          CodeCollab
+        </h1>
         <h2 className="text-3xl font-semibold mt-2">
           Real-time Collaborative Code Editing & Testing Platform
         </h2>
         <p className="text-lg mt-2 text-gray-300">
-          Code together, solve problems, and communicate in real-time. Perfect
-          for pair programming, technical interviews, and team coding sessions.
+          Code together, solve problems, and communicate in real-time. Perfect for pair programming, technical interviews, and team coding sessions.
         </p>
       </div>
 
-      {/* Main Content - Side by Side Layout */}
-      <div className="flex flex-col md:flex-row items-center justify-center gap-10 w-full max-w-5xl">
-        {/* Join/Create Room Section */}
-        <div className="bg-gray-800 p-8 rounded-2xl shadow-xl w-full md:w-1/2 flex flex-col items-center transition-transform hover:scale-105">
-          <h2 className="text-2xl font-semibold text-[#A78BFA] mb-4">
-            Join or Create a Room
-          </h2>
-          <div className="flex flex-col sm:flex-row gap-4 w-full">
+      {/* Join/Create Room Section */}
+      <div className="max-w-2xl bg-gray-800 p-8 rounded-2xl backdrop-blur-sm shadow-xl flex flex-col items-center">
+        <h2 className="text-2xl font-semibold text-purple-400 mb-4">Join or Create a Room</h2>
+        <div className="flex flex-col sm:flex-row gap-4 w-full">
+          <button
+            onClick={handleCreate}
+            className="bg-purple-600 hover:bg-purple-700 text-white py-3 px-6 rounded-md flex items-center justify-center transition-colors w-full sm:w-auto"
+          >
+            Create Room <ArrowDown className="ml-2 h-5 w-5" />
+          </button>
+          <div className="flex w-full sm:w-auto">
+            <input
+              type="text"
+              placeholder="Enter room code"
+              className="bg-gray-700 border border-gray-600 rounded-l-md px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-purple-400"
+              value={roomCode}
+              onChange={(e) => setRoomCode(e.target.value)}
+            />
             <button
-              onClick={handleCreate}
-              className="bg-[#5c6bc0] hover:bg-[#3f51b5] text-white py-3 px-6 rounded-md flex items-center justify-center transition-colors w-full sm:w-auto"
+              onClick={handleJoin}
+              className="bg-purple-500 hover:bg-purple-600 text-white px-6 rounded-r-md transition-colors"
             >
-              Create Room <ArrowDown className="ml-2 h-5 w-5" />
+              Join
             </button>
-            <div className="flex w-full sm:w-auto">
-              <input
-                type="text"
-                placeholder="Enter room code"
-                className="bg-[#2d3748] border border-[#4b5563] rounded-l-md px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-[#5c6bc0]"
-                value={roomCode}
-                onChange={(e) => setRoomCode(e.target.value)}
-              />
-              <button
-                onClick={handleJoin}
-                className="bg-[#7c4dff] hover:bg-[#651fff] text-white px-6 rounded-r-md transition-colors"
-              >
-                Join
-              </button>
-            </div>
           </div>
         </div>
-        {/* 
-        Code Snippet Section
-        <div className="w-full md:w-1/2 flex items-center justify-center">
-          <CodeSnippet />
-        </div> */}
       </div>
 
       {/* Features List */}
-      <div className="mt-8 flex flex-wrap justify-center gap-4 text-gray-400 text-sm">
-        <span className="flex items-center hover:text-white transition-colors">
-          <Check className="text-green-400 mr-2 h-5 w-5" /> Real-time Code Sync
-        </span>
-        <span className="flex items-center hover:text-white transition-colors">
-          <Check className="text-green-400 mr-2 h-5 w-5" /> Integrated Compiler
-        </span>
-        <span className="flex items-center hover:text-white transition-colors">
-          <Check className="text-green-400 mr-2 h-5 w-5" /> Live Chat
-        </span>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12 text-center">
+        <div className="p-6">
+          <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Code2 className="text-blue-400" size={24} />
+          </div>
+          <h3 className="text-lg font-semibold mb-2">Real-time Code Sync</h3>
+          <p className="text-gray-400">Collaborate on code in real-time with multiple developers</p>
+        </div>
+        <div className="p-6">
+          <div className="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Play className="text-purple-400" size={24} />
+          </div>
+          <h3 className="text-lg font-semibold mb-2">Integrated Compiler</h3>
+          <p className="text-gray-400">Run and test your code directly in the browser</p>
+        </div>
+        <div className="p-6">
+          <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <MessageSquare className="text-green-400" size={24} />
+          </div>
+          <h3 className="text-lg font-semibold mb-2">Live Chat</h3>
+          <p className="text-gray-400">Communicate with your team while coding</p>
+        </div>
       </div>
     </div>
   );
 };
 
-export default Home;
+export default App;
