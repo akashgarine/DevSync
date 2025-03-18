@@ -6,24 +6,42 @@ import { ArrowDown, Check, Code2, MessageSquare, Play } from "lucide-react";
 
 const socket = io.connect("http://localhost:3000");
 
-const App = () => {
+const Home = () => {
   const nav = useNavigate();
   const { join, create } = roomStore();
   const [roomCode, setRoomCode] = useState("");
-
+  const code = localStorage.getItem("roomCode");
   useEffect(() => {
-    socket.on("join-room", (payload) => {
-      setRoomCode(payload);
+    window.scrollTo({
+      top: 150,
+      behavior: "smooth",
     });
+    setRoomCode(code);
+    socket.on("join-room", (payload) => {
+      const roomCodeStr = String(payload);
+      setRoomCode((prev) => (prev !== roomCodeStr ? roomCodeStr : prev));
+    });
+
+    return () => {
+      socket.off("join-room");
+    };
   }, []);
 
   const handleJoin = async (e) => {
     e.preventDefault();
     try {
       const result = await join(roomCode);
-      console.log(result.success, result.data);
-      socket.emit("join-room", roomCode, localStorage.getItem("userId"));
-      nav("/room");
+      console.log(roomCode);
+      console.log(result); // Check the structure of the response
+
+      if (result.success) {
+        // Delay before emitting the event
+        setTimeout(() => {
+          socket.emit("join-room", roomCode, localStorage.getItem("userId"));
+          // nav("/room");
+          localStorage.setItem("roomCode", roomCode); // Ensure it's stored first
+        }, 500); // 500ms delay
+      }
     } catch (error) {
       console.log(error);
     }
@@ -32,14 +50,15 @@ const App = () => {
   const handleCreate = async (e) => {
     e.preventDefault();
     const result = await create();
+    console.log(result);
     if (result.success) {
-      nav("/room");
-      localStorage.setItem("leave", false);
+      // nav("/room");
+      console.log(localStorage.getItem("roomCode"));
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-950 text-white flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-[#171717] text-white flex flex-col items-center justify-center p-6">
       {/* Title & Subtitle */}
       <div className="text-center mb-8">
         <h1 className="text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
@@ -49,17 +68,20 @@ const App = () => {
           Real-time Collaborative Code Editing & Testing Platform
         </h2>
         <p className="text-lg mt-2 text-gray-300">
-          Code together, solve problems, and communicate in real-time. Perfect for pair programming, technical interviews, and team coding sessions.
+          Code together, solve problems, and communicate in real-time. Perfect
+          for pair programming, technical interviews, and team coding sessions.
         </p>
       </div>
 
       {/* Join/Create Room Section */}
       <div className="max-w-2xl bg-gray-800 p-8 rounded-2xl backdrop-blur-sm shadow-xl flex flex-col items-center">
-        <h2 className="text-2xl font-semibold text-purple-400 mb-4">Join or Create a Room</h2>
+        <h2 className="text-2xl font-semibold text-purple-400 mb-4">
+          Join or Create a Room
+        </h2>
         <div className="flex flex-col sm:flex-row gap-4 w-full">
           <button
             onClick={handleCreate}
-            className="bg-purple-600 hover:bg-purple-700 text-white py-3 px-6 rounded-md flex items-center justify-center transition-colors w-full sm:w-auto"
+            className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-md flex items-center justify-center transition-colors w-full sm:w-auto"
           >
             Create Room <ArrowDown className="ml-2 h-5 w-5" />
           </button>
@@ -69,16 +91,21 @@ const App = () => {
               placeholder="Enter room code"
               className="bg-gray-700 border border-gray-600 rounded-l-md px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-purple-400"
               value={roomCode}
-              onChange={(e) => setRoomCode(e.target.value)}
+              onChange={(e) => setRoomCode(e.target?.value)}
             />
             <button
               onClick={handleJoin}
-              className="bg-purple-500 hover:bg-purple-600 text-white px-6 rounded-r-md transition-colors"
+              className="bg-green-500 hover:bg-green-600 text-white px-6 rounded-r-md transition-colors"
             >
               Join
             </button>
           </div>
         </div>
+        {roomCode && (
+          <div className="mt-4 text-gray-300">
+            Your Room Code: <span className="font-semibold">{roomCode}</span>
+          </div>
+        )}
       </div>
 
       {/* Features List */}
@@ -88,25 +115,31 @@ const App = () => {
             <Code2 className="text-blue-400" size={24} />
           </div>
           <h3 className="text-lg font-semibold mb-2">Real-time Code Sync</h3>
-          <p className="text-gray-400">Collaborate on code in real-time with multiple developers</p>
+          <p className="text-gray-400">
+            Collaborate on code in real-time with multiple developers
+          </p>
         </div>
         <div className="p-6">
           <div className="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <Play className="text-purple-400" size={24} />
           </div>
           <h3 className="text-lg font-semibold mb-2">Integrated Compiler</h3>
-          <p className="text-gray-400">Run and test your code directly in the browser</p>
+          <p className="text-gray-400">
+            Run and test your code directly in the browser
+          </p>
         </div>
         <div className="p-6">
           <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <MessageSquare className="text-green-400" size={24} />
           </div>
           <h3 className="text-lg font-semibold mb-2">Live Chat</h3>
-          <p className="text-gray-400">Communicate with your team while coding</p>
+          <p className="text-gray-400">
+            Communicate with your team while coding
+          </p>
         </div>
       </div>
     </div>
   );
 };
 
-export default App;
+export default Home;
