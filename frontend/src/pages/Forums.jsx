@@ -1,7 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import io from "socket.io-client";
-import { MessageSquare, Send, LogOut, Users } from "lucide-react";
+import {
+  MessageSquare,
+  Send,
+  LogOut,
+  Users,
+  ArrowDown,
+  Clock,
+} from "lucide-react";
 
 const socket = io.connect("http://localhost:3000");
 
@@ -11,6 +18,10 @@ const Forums = () => {
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([]);
   const [leave, setLeave] = useState(false);
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  const [onlineUsers, setOnlineUsers] = useState(1); 
+  const messagesEndRef = useRef(null);
+  const chatContainerRef = useRef(null);
   const nav = useNavigate();
   const code = localStorage.getItem("roomCode");
   const client = localStorage.getItem("userId");
@@ -22,32 +33,85 @@ const Forums = () => {
     } else {
       setRoomCode(code);
       setUser(client);
-      console.log(code);
-      console.log(client);
       socket.emit("join-room", { roomCode: code, userId: client });
+
+
+      const savedChat = localStorage.getItem(`chat_${code}`);
+      if (savedChat) {
+        setChat(JSON.parse(savedChat));
+      }
     }
+
+    // Simulate fetching online user count (replace with actual implementation)
+    socket.on("user-count-update", (count) => {
+      setOnlineUsers(count);
+    });
+
+    return () => {
+      socket.off("user-count-update");
+    };
   }, []);
 
   useEffect(() => {
     setLeave(localStorage.getItem("leave"));
 
-    socket.on("text-message", (payload) => {
-      console.log("Received message:", payload);
-      setChat((prev) => [...prev, payload]);
-    });
+    const handleReceiveMessage = (payload) => {
+      setChat((prev) => {
+        if (
+          prev.some(
+            (msg) =>
+              msg.message === payload.message && msg.client === payload.client
+          )
+        ) {
+          return prev;
+        }
+        const updatedChat = [
+          ...prev,
+          { ...payload, timestamp: new Date().toISOString() },
+        ];
+        localStorage.setItem(`chat_${roomCode}`, JSON.stringify(updatedChat));
+        return updatedChat;
+      });
+    };
 
-    return () => socket.off("text-message");
+    socket.on("text-message", handleReceiveMessage);
+
+    return () => socket.off("text-message", handleReceiveMessage);
+  }, [roomCode]);
+
+ 
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!chatContainerRef.current) return;
+
+      const { scrollTop, scrollHeight, clientHeight } =
+        chatContainerRef.current;
+      const isScrolledUp = scrollHeight - scrollTop - clientHeight > 100;
+      setShowScrollButton(isScrolledUp);
+    };
+
+    const container = chatContainerRef.current;
+    if (container) {
+      container.addEventListener("scroll", handleScroll);
+      return () => container.removeEventListener("scroll", handleScroll);
+    }
   }, []);
+
+
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [chat]);
 
   const sendMessage = (e) => {
     e.preventDefault();
     if (message.trim() !== "") {
-      console.log("Sending message:", {
+      socket.emit("text-message", {
         message,
         client: user,
         code: roomCode,
       });
-      socket.emit("text-message", { message, client: user, code: roomCode });
       setMessage("");
     }
   };
@@ -60,75 +124,165 @@ const Forums = () => {
     nav("/home");
   };
 
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+
+  const formatTime = (timestamp) => {
+    if (!timestamp) return "";
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+
+  const groupedMessages = chat.reduce((groups, message, index) => {
+    const prevMessage = chat[index - 1];
+    const isSameSender = prevMessage && prevMessage.client === message.client;
+
+    if (isSameSender) {
+      groups[groups.length - 1].messages.push(message);
+    } else {
+      groups.push({
+        client: message.client,
+        isCurrentUser: message.client === user,
+        messages: [message],
+      });
+    }
+
+    return groups;
+  }, []);
+
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-b from-[#1e2a47] to-[#111827] text-white">
+    <div className="flex flex-col h-screen bg-gradient-to-b from-gray-900 to-black text-white">
       {/* Header */}
-      <div className="bg-[#1a1e2e] border-b border-gray-700 p-4 flex justify-between items-center">
-        <div className="flex items-center">
-          <MessageSquare className="text-[#8c9eff] h-6 w-6 mr-2" />
-          <h1 className="text-xl font-bold text-[#8c9eff]">CodeCollab Chat</h1>
-        </div>
-        <div className="flex items-center">
-          <div className="bg-[#2d3748] px-3 py-1 rounded-md flex items-center mr-4">
-            <Users className="text-[#8c9eff] h-4 w-4 mr-2" />
-            <span className="text-sm">
-              Room: <span className="font-semibold">{roomCode}</span>
-            </span>
+      <div className="bg-gradient-to-r from-blue-900 to-purple-900 border-b border-gray-700 p-4 flex justify-between items-center shadow-lg">
+        <div className="flex items-center space-x-3">
+          <div className="bg-blue-500 p-2 rounded-full">
+            <MessageSquare className="h-5 w-5" />
           </div>
-          <button
-            onClick={leaveRoom}
-            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md flex items-center transition-colors"
-          >
-            <LogOut className="h-4 w-4 mr-1" />
-            <span>Leave</span>
-          </button>
+          <div>
+            <h1 className="text-xl font-bold text-white">Room Chat</h1>
+            <div className="flex items-center text-xs text-gray-300">
+              {/* <span className="flex items-center">
+                <Users className="h-3 w-3 mr-1" />
+                {onlineUsers} online
+              </span> */}
+              {/* <span className="mx-2">•</span> */}
+              <span>Room: {roomCode}</span>
+            </div>
+          </div>
         </div>
+        <button
+          onClick={leaveRoom}
+          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md flex items-center transition-colors shadow-md"
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          <span>Exit Room</span>
+        </button>
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-grow overflow-y-auto p-4 space-y-4">
+      <div
+        ref={chatContainerRef}
+        className="flex-grow overflow-y-auto p-4 space-y-4 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+CiAgPHBhdGggZD0iTTAgMGg2MHY2MEgweiIgZmlsbD0ibm9uZSIvPgogIDxwYXRoIGQ9Ik0zMCAzMG0tMjggMGEyOCwyOCAwIDEsMSA1NiwwYTI4LDI4IDAgMSwxIC01NiwwIiBmaWxsPSJub25lIiBzdHJva2U9IiMyMjIiIHN0cm9rZS13aWR0aD0iLjIiLz4KPC9zdmc+')]"
+      >
         {chat.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-400">
-            <MessageSquare className="h-12 w-12 mb-2" />
-            <p>No messages yet. Start the conversation!</p>
+            <div className="bg-blue-900/30 p-6 rounded-full mb-4">
+              <MessageSquare className="h-12 w-12" />
+            </div>
+            <p className="text-lg mb-2">No messages yet</p>
+            <p className="text-sm text-gray-500">Start the conversation!</p>
           </div>
         ) : (
-          chat.map((payload, id) => (
+          groupedMessages.map((group, groupIndex) => (
             <div
-              key={id}
-              className={`max-w-[80%] ${
-                payload.client === user
-                  ? "ml-auto bg-[#5c6bc0]"
-                  : "bg-[#2d3748]"
-              } rounded-lg p-3 shadow-md`}
+              key={groupIndex}
+              className={`flex ${
+                group.isCurrentUser ? "justify-end" : "justify-start"
+              } mb-4`}
             >
-              <div className="flex flex-col">
-                <div className="flex justify-between items-baseline mb-1">
-                  <span
-                    className={`font-semibold text-sm ${
-                      payload.client === user
-                        ? "text-blue-200"
-                        : "text-[#8c9eff]"
-                    }`}
-                  >
-                    {payload.client === user ? "You" : payload.client}
-                  </span>
-                  <span className="text-xs text-gray-300 ml-2">
-                    {new Date().toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+              {!group.isCurrentUser && (
+                <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-700 flex items-center justify-center mr-2 mt-1">
+                  <span className="text-xs font-bold">
+                    {group.client.charAt(0).toUpperCase()}
                   </span>
                 </div>
-                <p className="text-white break-words">{payload.message}</p>
+              )}
+
+              <div className={`max-w-[70%] flex flex-col gap-1`}>
+                <div
+                  className={`flex items-baseline mb-1 ${
+                    group.isCurrentUser ? "justify-end" : "justify-start"
+                  }`}
+                >
+                  <span className="text-xs text-gray-400">
+                    {group.isCurrentUser ? "You" : group.client}
+                  </span>
+                </div>
+
+                {group.messages.map((msg, msgIndex) => (
+                  <div
+                    key={msgIndex}
+                    className={`
+                      relative px-4 py-3 rounded-2xl shadow-md
+                      ${
+                        group.isCurrentUser
+                          ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white ml-auto"
+                          : "bg-gradient-to-r from-gray-700 to-gray-800 text-white"
+                      }
+                      ${
+                        msgIndex === 0 && group.isCurrentUser
+                          ? "rounded-tr-sm"
+                          : ""
+                      }
+                      ${
+                        msgIndex === 0 && !group.isCurrentUser
+                          ? "rounded-tl-sm"
+                          : ""
+                      }
+                    `}
+                  >
+                    <p className="text-white break-words">{msg.message}</p>
+                    <span className="text-xs text-gray-300 block text-right mt-1 flex items-center justify-end">
+                      <Clock className="h-3 w-3 mr-1" />
+                      {formatTime(msg.timestamp)}
+                    </span>
+                  </div>
+                ))}
               </div>
+
+              {group.isCurrentUser && (
+                <div className="flex-shrink-0 h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center ml-2 mt-1">
+                  <span className="text-xs font-bold">
+                    {user.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              )}
             </div>
           ))
         )}
+        <div ref={messagesEndRef} />
       </div>
 
+      {/* Scroll to bottom button */}
+      {showScrollButton && (
+        <button
+          onClick={scrollToBottom}
+          className="absolute bottom-24 right-6 bg-blue-600 text-white p-2 rounded-full shadow-lg hover:bg-blue-700 transition-all"
+        >
+          <ArrowDown className="h-5 w-5" />
+        </button>
+      )}
+
       {/* Message Input */}
-      <div className="bg-[#1a1e2e] border-t border-gray-700 p-4">
+      <div className="bg-gradient-to-r from-gray-800 to-gray-900 border-t border-gray-700 p-4 shadow-lg">
         <form onSubmit={sendMessage} className="flex items-center">
           <input
             type="text"
@@ -136,11 +290,19 @@ const Forums = () => {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Type your message..."
-            className="flex-grow bg-[#2d3748] border border-[#4b5563] rounded-l-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#5c6bc0] text-white"
+            className="flex-grow bg-gray-800 border border-gray-600 rounded-l-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-white placeholder-gray-400"
           />
           <button
             type="submit"
-            className="bg-[#7c4dff] hover:bg-[#651fff] text-white px-6 py-3 rounded-r-md transition-colors flex items-center"
+            disabled={!message.trim()}
+            className={`
+              px-6 py-3 rounded-r-md transition-colors flex items-center justify-center
+              ${
+                message.trim()
+                  ? "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
+                  : "bg-gray-700 text-gray-400 cursor-not-allowed"
+              }
+            `}
           >
             <Send className="h-5 w-5" />
           </button>
