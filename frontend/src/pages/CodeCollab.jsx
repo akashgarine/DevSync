@@ -4,7 +4,8 @@ import { executeCode } from "../assets/api";
 import { io } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
 import { RotateCcw, Eye } from "lucide-react";
-
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 const socket = io.connect("http://localhost:3000");
 
 const CodeCollab = () => {
@@ -35,8 +36,10 @@ const CodeCollab = () => {
   useEffect(() => {
     setLeave(localStorage.getItem("leave"));
     if (!code || !client) {
-      alert("Please login and join a room first");
-      nav("/home");
+      toast.error("Please enter a room")
+      setTimeout(() => {
+        nav("/");
+      }, 2000);
       return;
     }
     const dummyQuestions = [

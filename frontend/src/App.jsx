@@ -4,29 +4,49 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"; // Ensure toast styles are loaded
 import CodeCollab from "./pages/CodeCollab";
 import Test from "./pages/Test";
 import Home from "./pages/Home";
 import Forums from "./pages/Forums";
 import Auth from "./pages/Auth";
-import { useState } from "react";
 import NavBar from "./pages/NavBar";
 import NotFound from "./pages/NotFound";
 import Room from "./pages/Room";
 import QuizCreate from "./pages/QuizCreate";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
+
 function App() {
   const [isLogin, setIsLogin] = useState(
     localStorage.getItem("isLogin") === "true"
   );
 
+  // Sync state with localStorage when it changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setIsLogin(localStorage.getItem("isLogin") === "true");
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
+
   const ProtectedRoute = ({ children }) => {
-    return isLogin ? children : <Navigate to="/login" replace />;
+    return localStorage.getItem("isLogin") === "true" ? (
+      children
+    ) : (
+      <Navigate to="/login" replace />
+    );
   };
 
   return (
     <Router>
+      <ToastContainer position="top-right" autoClose={2000} />
       <NavBar />
       <Routes>
         <Route path="/" element={<Home />} />
