@@ -1,0 +1,13 @@
+{
+  "name": "codingassistant",
+  "version": "1.0.0",
+  "description": "TODO",
+  "main": "index.js",
+  "scripts": {
+    "build":"npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend",
+    "start":"npm run deploy --prefix backend"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

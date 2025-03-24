@@ -11,7 +11,10 @@ import {
 } from "lucide-react";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-const socket = io.connect("http://localhost:3000");
+const socket = io.connect(import.meta.env.VITE_SOCKET_URL, {
+  transports: ["websocket"],
+});
+
 
 const Forums = () => {
   const [roomCode, setRoomCode] = useState(null);

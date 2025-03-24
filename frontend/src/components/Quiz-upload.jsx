@@ -53,7 +53,7 @@ export function QuizUpload({ onQuizUpload, roomCode }) {
       const data = JSON.parse(jsonData);
       validateQuizData(data); // Ensure validation
 
-      const response = await fetch("http://localhost:3000/api/save-quiz", {
+      const response = await fetch(import.meta.env.MODE === "deployment" ? `http://localhost:3000/api/save-quiz`:`/api/save-quiz`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ roomCode, quizData: data }), // Ensure correct format

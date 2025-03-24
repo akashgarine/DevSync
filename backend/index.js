@@ -9,6 +9,10 @@ import { rooms, users } from "./sharedState/sharedState.js";
 import roomRoutes from "./routes/roomRoutes.js";
 import Quiz from "./models/quiz.js"; // Fixed casing to match actual file
 dotenv.config();
+import path from "path";
+
+const __dirname = path.resolve()
+
 
 const app = express();
 app.use(json());
@@ -154,6 +158,15 @@ app.post("/results", async (req, res) => {
     res.status(500).json({ message: "Error saving results", error });
   }
 });
+
+if (process.env.NODE_ENV === "production"){
+  app.use(express.static(path.join(__dirname,"../frontend/dist")))
+  app.get("*",(req,res)=>{
+    res.sendFile(path.join(__dirname,"../frontend","dist","index.html"))
+  })
+}
+
+
 
 server.listen(3000, () => {
   connectDB();
