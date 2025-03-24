@@ -7,7 +7,7 @@ import { createServer } from "http";
 import authRoutes from "./routes/authRoutes.js";
 import { rooms, users } from "./sharedState/sharedState.js";
 import roomRoutes from "./routes/roomRoutes.js";
-import Quiz from "./models/quiz.js"; // Fixed casing to match actual file
+import Quiz from "./models/Quiz.js"; // Fixed casing to match actual file
 dotenv.config();
 import path from "path";
 
