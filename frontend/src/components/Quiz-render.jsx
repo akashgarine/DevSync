@@ -24,8 +24,8 @@ export function QuizRenderer({ roomCode, userId }) {
   useEffect(() => {
     async function fetchQuiz() {
       try {
-        const response = await axios.post(
-          `http://localhost:3000/api/get-quiz`,
+        const response = await axios.post( import.meta.env.MODE === "deployment" ? `http://localhost:3000/api/get-quiz`
+          : `/api/get-quiz`,
           { roomCode }
         );
         setQuizData(response.data.quizData);
@@ -78,7 +78,7 @@ export function QuizRenderer({ roomCode, userId }) {
 
   const saveResults = async () => {
     try {
-      await axios.post("http://localhost:3000/results", {
+      await axios.post(import.meta.env.MODE === "deployment" ? `http://localhost:3000/results`:"/results", {
         userId,
         roomCode,
         score,

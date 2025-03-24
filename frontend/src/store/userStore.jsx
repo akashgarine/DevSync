@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import axios from 'axios';
-
+const BASE = import.meta.env.MODE === "deployment" ? `http://localhost:3000/` :"/"
 export const userStore = create((set) => ({
   user: null,
   setUser: (user) => set({ user }),
@@ -11,7 +11,7 @@ export const userStore = create((set) => ({
     }
 
     try {
-      const response = await axios.post("http://localhost:3000/signup", userData);
+      const response = await axios.post(`${BASE}signup`, userData);
       return response.data;
     } catch (error) {
       console.error(error);
@@ -23,7 +23,7 @@ export const userStore = create((set) => ({
         return {message:"Please enter all the fields"};
     }
     try{
-        const response = await axios.post("http://localhost:3000/login",Udata);
+        const response = await axios.post(`${BASE}login`,Udata);
         console.log(response);
         return response.data;
     }

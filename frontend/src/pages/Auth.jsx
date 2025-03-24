@@ -17,7 +17,7 @@ const Auth = ({ setIsLogin }) => {
     }
 
     try {
-      const url = isSignUp ? "http://localhost:3000/signup" : "http://localhost:3000/login";
+      const url = isSignUp ? "/signup" : "/login";
       const response = await axios.post(url, formData);
       
       if (response.data.status === 200) {
