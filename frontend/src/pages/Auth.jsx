@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Auth = ({ setIsLogin }) => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -9,45 +11,48 @@ const Auth = ({ setIsLogin }) => {
 
   const handleAuth = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.email || !formData.password || (isSignUp && !formData.username)) {
-      return alert("Please enter all the fields");
+      return toast.error("Please enter all the fields");
     }
 
     try {
-      const url = isSignUp ? "http://localhost:3000/signup" : "http://localhost:/login";
+      const url = isSignUp ? "http://localhost:3000/signup" : "http://localhost:3000/login";
       const response = await axios.post(url, formData);
-      console.log("Response:", response); // Debugging
-
+      
       if (response.data.status === 200) {
         if (isSignUp) {
           setIsSignUp(false);
           setFormData({ username: '', email: '', password: '' });
-          localStorage.clear(); // Clear local storage after signup
+          localStorage.clear();
+          toast.success("Signup successful! Please log in.");
         } else {
-          const { token } = response.data; // Extract token properly
+          const { token } = response.data;
           if (token) {
             localStorage.setItem('isLogin', 'true');
             localStorage.setItem('email', formData.email);
             localStorage.setItem('token', token);
-            console.log('Stored Token:', localStorage.getItem('token')); // Debugging
             setIsLogin(true);
-            nav('/home');
+            toast.success("Login successful!");
+            setTimeout(() => {
+              nav("/");
+            }, 2000);
           } else {
-            alert("Login successful, but no token received!");
+            toast.warning("Login successful, but no token received!");
           }
         }
       } else {
-        alert(response.data.message);
+        toast.error(response.data.message || "Something went wrong");
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("Error occurred while processing your request");
+      toast.error("Error occurred while processing your request");
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-[#0F172A] to-[#111827] text-white px-4">
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
       <h1 className="text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 mb-6">
         CodeCollab
       </h1>
