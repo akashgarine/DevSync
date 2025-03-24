@@ -14,8 +14,8 @@ import Forums from "./pages/Forums";
 import Auth from "./pages/Auth";
 import NavBar from "./pages/NavBar";
 import NotFound from "./pages/NotFound";
-import Room from "./pages/Room";
-import QuizCreate from "./pages/QuizCreate";
+// import Room from "./pages/Room";
+// import QuizCreate from "./pages/QuizCreate";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 
@@ -60,14 +60,14 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route
+        {/* <Route
           path="/room"
           element={
             <ProtectedRoute>
               <Room />
             </ProtectedRoute>
           }
-        />
+        /> */}
         <Route
           path="/collab"
           element={
