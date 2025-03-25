@@ -3,10 +3,8 @@ import io from "socket.io-client";
 import { useNavigate } from "react-router-dom";
 import roomStore from "@/store/roomStore";
 import { ArrowDown, Check, Code2, MessageSquare, Play } from "lucide-react";
-const socket = io.connect(import.meta.env.VITE_SOCKET_URL, {
-  transports: ["websocket"],
-});
 
+const socket = io.connect("http://localhost:3000");
 
 const Home = () => {
   const nav = useNavigate();
