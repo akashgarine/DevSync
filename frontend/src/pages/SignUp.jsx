@@ -18,6 +18,7 @@ const SignUp = () => {
     const res = await sign(formData);
     if (res.message === "User registered successfully") {
       setTimeout(() => {
+        toast.success("User registered successfully!")
         nav("/login");
       }, 2000);
     } else {
