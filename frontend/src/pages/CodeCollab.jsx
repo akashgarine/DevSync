@@ -1,4 +1,5 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
+
 import { Editor } from "@monaco-editor/react";
 import { executeCode } from "../assets/api";
 import { io } from "socket.io-client";
@@ -90,7 +91,7 @@ const CodeCollab = () => {
 
     return () => {
       socket.off("editor");
-      socket.off("laeve-room")
+      socket.off("leave-room")
     };
   }, [value, code]);
 
