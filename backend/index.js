@@ -23,7 +23,7 @@ const io = new Server(server, {
   },
 });
 
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use(cors({ origin: "*" }));
 
 //mongoDB connection
 const connectDB = async () => {
@@ -59,7 +59,7 @@ io.on("connection", (socket) => {
     rooms[roomCode].push(userId);
     users[userId] = roomCode;
     io.to(roomCode).emit("join-room", { roomCode });
-    console.log(`User ${userId} joined room ${roomCode}`);
+    // console.log(`User ${userId} joined room ${roomCode}`);
   });
 
   socket.on("text-message", ({ message, client, code }) => {
@@ -70,7 +70,7 @@ io.on("connection", (socket) => {
       rooms[code].splice(rooms[code].indexOf(client), 1);
       delete users[client];
       socket.leave(code);
-      console.log(`${client} left room ${code}`);
+      // console.log(`${client} left room ${code}`);
     }
   });
   socket.on("editor", ({ change, code }) => {
