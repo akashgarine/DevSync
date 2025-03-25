@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import axios from 'axios';
-const BASE = import.meta.env.MODE === "deployment" ? `http://localhost:3000/` :"/"
+const BASE = "https://codingassistant.onrender.com/"
 export const userStore = create((set) => ({
   user: null,
   setUser: (user) => set({ user }),

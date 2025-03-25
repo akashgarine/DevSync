@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import roomStore from "@/store/roomStore";
 import { ArrowDown, Check, Code2, MessageSquare, Play } from "lucide-react";
 
-const socket = io.connect("http://localhost:3000");
+const socket = io.connect("https://codingassistant.onrender.com");
 
 const Home = () => {
   const nav = useNavigate();

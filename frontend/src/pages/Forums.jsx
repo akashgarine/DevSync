@@ -11,9 +11,7 @@ import {
 } from "lucide-react";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-const socket = io.connect(import.meta.env.VITE_SOCKET_URL, {
-  transports: ["websocket"],
-});
+const socket = io.connect("https://codingassistant.onrender.com")
 
 
 const Forums = () => {
