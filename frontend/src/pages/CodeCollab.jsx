@@ -4,9 +4,9 @@ import { executeCode } from "../assets/api";
 import { io } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
 import { RotateCcw, Eye } from "lucide-react";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-const socket = io.connect("https://codingassistant.onrender.com")
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+const socket = io.connect("https://codingassistant.onrender.com");
 
 const CodeCollab = () => {
   const nav = useNavigate();
@@ -29,14 +29,14 @@ const CodeCollab = () => {
   };
   useEffect(() => {
     window.scrollTo({
-      top: 150, 
-      behavior: "smooth", 
+      top: 150,
+      behavior: "smooth",
     });
   }, []);
   useEffect(() => {
     setLeave(localStorage.getItem("leave"));
     if (!code || !client) {
-      toast.error("Please enter a room")
+      toast.error("Please enter a room");
       setTimeout(() => {
         nav("/");
       }, 2000);
@@ -77,7 +77,7 @@ const CodeCollab = () => {
     socket.emit("join-room", { roomCode: code, client });
 
     socket.on("editor", (change) => {
-      if (change !== value) {
+      if (change !== value && editorRef.current?.getValue() !== change) {
         setValue(change);
       }
     });
@@ -90,6 +90,7 @@ const CodeCollab = () => {
 
     return () => {
       socket.off("editor");
+      socket.off("laeve-room")
     };
   }, [value, code]);
 
@@ -97,21 +98,41 @@ const CodeCollab = () => {
     editorRef.current = editor;
     editor.focus();
   };
-
+  const handleEditorChange = useCallback(
+    debounce((value) => {
+      setValue(value);
+      socket.emit("editor", { change: value, code });
+    }, 500), // Adjust debounce delay as needed
+    [code]
+  );
+  useEffect(() => {
+    return () => {
+      handleEditorChange.cancel();
+    };
+  }, []);
+  
   const runCode = async () => {
-    const sourceCode = editorRef.current.getValue();
-    if (!sourceCode) return;
+    const sourceCode = editorRef.current?.getValue().trim();
+    if (!sourceCode) {
+      toast.warn("Code editor is empty!");
+      return;
+    }
+  
+    setOutput("Running..."); // Show loading state
+  
     try {
       const { run: result } = await executeCode(sourceCode);
-      setOutput(result.output);
+      setOutput(result?.output || "No output returned.");
     } catch (error) {
-      console.error(error);
+      console.error("Code execution error:", error);
+      setOutput("Execution failed. Please try again.");
     }
   };
-
+  
   const nextQuestion = () => {
-    setCurrentQuestionIndex((prevIndex) => (prevIndex + 1) % questions.length);
+    setCurrentQuestionIndex((prevIndex) => (prevIndex + 1 < questions.length ? prevIndex + 1 : 0));
   };
+  
 
   const previousQuestion = () => {
     setCurrentQuestionIndex((prevIndex) =>
