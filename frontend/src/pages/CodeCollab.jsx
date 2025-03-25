@@ -99,7 +99,7 @@ const CodeCollab = () => {
     editorRef.current = editor;
     editor.focus();
   };
-  const handleEditorChange = useCallback(
+  const handleEditor = useCallback(
     debounce((value) => {
       setValue(value);
       socket.emit("editor", { change: value, code });
@@ -108,7 +108,7 @@ const CodeCollab = () => {
   );
   useEffect(() => {
     return () => {
-      handleEditorChange.cancel();
+      handleEditor.cancel();
     };
   }, []);
 
@@ -143,11 +143,6 @@ const CodeCollab = () => {
   };
 
   const currentQuestion = questions[currentQuestionIndex];
-
-  const handleEditor = (value) => {
-    setValue(value);
-    socket.emit("editor", { change: value, code });
-  };
 
   // if (leave) {
   //   return (
