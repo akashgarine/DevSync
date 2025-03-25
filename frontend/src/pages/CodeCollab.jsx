@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
-
+import { debounce } from "lodash";
 import { Editor } from "@monaco-editor/react";
 import { executeCode } from "../assets/api";
 import { io } from "socket.io-client";
@@ -91,7 +91,7 @@ const CodeCollab = () => {
 
     return () => {
       socket.off("editor");
-      socket.off("leave-room")
+      socket.off("leave-room");
     };
   }, [value, code]);
 
@@ -111,16 +111,16 @@ const CodeCollab = () => {
       handleEditorChange.cancel();
     };
   }, []);
-  
+
   const runCode = async () => {
     const sourceCode = editorRef.current?.getValue().trim();
     if (!sourceCode) {
       toast.warn("Code editor is empty!");
       return;
     }
-  
+
     setOutput("Running..."); // Show loading state
-  
+
     try {
       const { run: result } = await executeCode(sourceCode);
       setOutput(result?.output || "No output returned.");
@@ -129,11 +129,12 @@ const CodeCollab = () => {
       setOutput("Execution failed. Please try again.");
     }
   };
-  
+
   const nextQuestion = () => {
-    setCurrentQuestionIndex((prevIndex) => (prevIndex + 1 < questions.length ? prevIndex + 1 : 0));
+    setCurrentQuestionIndex((prevIndex) =>
+      prevIndex + 1 < questions.length ? prevIndex + 1 : 0
+    );
   };
-  
 
   const previousQuestion = () => {
     setCurrentQuestionIndex((prevIndex) =>
