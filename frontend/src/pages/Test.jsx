@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { RoomEntry } from "../components/Room-entry";
 import { QuizUpload } from "../components/Quiz-upload";
 import { QuizRenderer } from "../components/Quiz-render";
+import { useNavigate } from "react-router-dom";
 
 export default function Test() {
+  const nav = useNavigate();
   const [roomCode, setRoomCode] = useState(localStorage.getItem("roomCode"));
   const [quizData, setQuizData] = useState(null);
   const [userId, setUserId] = useState(localStorage.getItem("userId"));
@@ -46,6 +48,7 @@ export default function Test() {
     setIsHost(false);
     setQuizData(null);
     setView("default");
+    nav("/");
   };
 
   if (loading) {

@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { userStore } from "../store/userStore";
 import { Lock, Mail } from "lucide-react";
-
+import { ToastContainer, toast } from "react-toastify";
+import { Link } from "react-router-dom";
+import "react-toastify/dist/ReactToastify.css";
 const Login = ({ setIsLogin }) => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const nav = useNavigate();
@@ -18,9 +20,12 @@ const Login = ({ setIsLogin }) => {
       localStorage.setItem("token", resp.token);
       localStorage.setItem("userId", resp.id);
       localStorage.setItem("role", resp.role);
-      nav("/");
+      toast.success(resp.message);
+      setTimeout(() => {
+        nav("/");
+      }, 750);
     } else {
-      alert(resp.message);
+      toast.error(resp.message);
     }
   };
 
@@ -75,9 +80,9 @@ const Login = ({ setIsLogin }) => {
 
         <p className="text-gray-400 text-center mt-4">
           Don't have an account?{" "}
-          <a href="/register" className="text-purple-400 hover:underline">
+          <Link to="/signup" className="text-purple-400 hover:underline">
             Sign Up
-          </a>
+          </Link>
         </p>
       </div>
     </div>

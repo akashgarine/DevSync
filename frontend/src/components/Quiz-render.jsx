@@ -24,8 +24,7 @@ export function QuizRenderer({ roomCode, userId }) {
   useEffect(() => {
     async function fetchQuiz() {
       try {
-        const response = await axios.post(
-          `http://localhost:3000/api/get-quiz`,
+        const response = await axios.post( "https://codingassistant.onrender.com/api/get-quiz",
           { roomCode }
         );
         setQuizData(response.data.quizData);
@@ -78,7 +77,7 @@ export function QuizRenderer({ roomCode, userId }) {
 
   const saveResults = async () => {
     try {
-      await axios.post("http://localhost:3000/results", {
+      await axios.post(`https://codingassistant.onrender.com/results`, {
         userId,
         roomCode,
         score,

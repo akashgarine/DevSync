@@ -7,8 +7,9 @@ import { createServer } from "http";
 import authRoutes from "./routes/authRoutes.js";
 import { rooms, users } from "./sharedState/sharedState.js";
 import roomRoutes from "./routes/roomRoutes.js";
-import Quiz from "./models/quiz.js"; // Fixed casing to match actual file
+import Quiz from "./models/Quiz.js"; // Fixed casing to match actual file
 dotenv.config();
+
 
 const app = express();
 app.use(json());
@@ -19,7 +20,7 @@ const io = new Server(server, {
   },
 });
 
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use(cors({ origin: "*" }));
 
 //mongoDB connection
 const connectDB = async () => {
@@ -31,18 +32,9 @@ const connectDB = async () => {
   }
 };
 
-//Import routes
 //Routes
 app.use("/", authRoutes);
-// app.use("/quiz", quizRouter);
 app.use("/", roomRoutes);
-// app.post("/api/check-host", async (req, res) => {
-//   const { roomCode, userId } = req.body;
-
-//   try{
-//     const resp = User.find({userId})
-//   }
-// });
 
 io.on("connection", (socket) => {
   console.log("Client connected with id", socket.id);
@@ -55,7 +47,7 @@ io.on("connection", (socket) => {
     rooms[roomCode].push(userId);
     users[userId] = roomCode;
     io.to(roomCode).emit("join-room", { roomCode });
-    console.log(`User ${userId} joined room ${roomCode}`);
+    // console.log(`User ${userId} joined room ${roomCode}`);
   });
 
   socket.on("text-message", ({ message, client, code }) => {
@@ -66,7 +58,7 @@ io.on("connection", (socket) => {
       rooms[code].splice(rooms[code].indexOf(client), 1);
       delete users[client];
       socket.leave(code);
-      console.log(`${client} left room ${code}`);
+      // console.log(`${client} left room ${code}`);
     }
   });
   socket.on("editor", ({ change, code }) => {
@@ -154,6 +146,7 @@ app.post("/results", async (req, res) => {
     res.status(500).json({ message: "Error saving results", error });
   }
 });
+
 
 server.listen(3000, () => {
   connectDB();
