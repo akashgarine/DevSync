@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { nanoid } from "nanoid";
 import axios from "axios";
-const BASE = import.meta.env.MODE === "deployment" ? `http://localhost:3000/` :"/"
+const BASE ="https://codingassistant.onrender.com/"
 
 const roomStore = create((set) => ({
   room: null,

@@ -6,10 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { RotateCcw, Eye } from "lucide-react";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-const socket = io.connect(import.meta.env.VITE_SOCKET_URL, {
-  transports: ["websocket"],
-});
-
+const socket = io.connect("https://codingassistant.onrender.com")
 
 const CodeCollab = () => {
   const nav = useNavigate();

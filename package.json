@@ -4,12 +4,15 @@
   "description": "Code Collaborate",
   "main": "index.js",
   "scripts": {
-    "build":"npm install --prefix backend",
-    "start":"npm run start --prefix backend",
-    "buildF":"npm install --prefix frontend",
-    "startF":"npm run start --prefix frontend"
+    "build": "npm install --prefix backend",
+    "start": "npm run start --prefix backend",
+    "buildF": "npm install --prefix frontend",
+    "startF": "npm run start --prefix frontend"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "vercel": "^41.4.1"
+  }
 }

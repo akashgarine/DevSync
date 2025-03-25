@@ -52,14 +52,14 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/login" element={<Login setIsLogin={setIsLogin} />} />
-        <Route
+        {/* <Route
           path="/admin/quiz"
           element={
             <ProtectedRoute>
               <QuizCreate />
             </ProtectedRoute>
           }
-        />
+        /> */}
         {/* <Route
           path="/room"
           element={
