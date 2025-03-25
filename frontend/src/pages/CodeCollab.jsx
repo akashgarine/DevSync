@@ -1,11 +1,13 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
+import { debounce } from "lodash";
 import { Editor } from "@monaco-editor/react";
 import { executeCode } from "../assets/api";
 import { io } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
 import { RotateCcw, Eye } from "lucide-react";
-
-const socket = io.connect("http://localhost:3000");
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+const socket = io.connect("https://codingassistant.onrender.com");
 
 const CodeCollab = () => {
   const nav = useNavigate();
@@ -28,15 +30,17 @@ const CodeCollab = () => {
   };
   useEffect(() => {
     window.scrollTo({
-      top: 150, 
-      behavior: "smooth", 
+      top: 150,
+      behavior: "smooth",
     });
   }, []);
   useEffect(() => {
     setLeave(localStorage.getItem("leave"));
     if (!code || !client) {
-      alert("Please login and join a room first");
-      nav("/home");
+      toast.error("Please enter a room");
+      setTimeout(() => {
+        nav("/");
+      }, 2000);
       return;
     }
     const dummyQuestions = [
@@ -74,7 +78,7 @@ const CodeCollab = () => {
     socket.emit("join-room", { roomCode: code, client });
 
     socket.on("editor", (change) => {
-      if (change !== value) {
+      if (change !== value && editorRef.current?.getValue() !== change) {
         setValue(change);
       }
     });
@@ -87,6 +91,7 @@ const CodeCollab = () => {
 
     return () => {
       socket.off("editor");
+      socket.off("leave-room");
     };
   }, [value, code]);
 
@@ -94,20 +99,41 @@ const CodeCollab = () => {
     editorRef.current = editor;
     editor.focus();
   };
+  const handleEditor = useCallback(
+    debounce((value) => {
+      setValue(value);
+      socket.emit("editor", { change: value, code });
+    }, 500), // Adjust debounce delay as needed
+    [code]
+  );
+  useEffect(() => {
+    return () => {
+      handleEditor.cancel();
+    };
+  }, []);
 
   const runCode = async () => {
-    const sourceCode = editorRef.current.getValue();
-    if (!sourceCode) return;
+    const sourceCode = editorRef.current?.getValue().trim();
+    if (!sourceCode) {
+      toast.warn("Code editor is empty!");
+      return;
+    }
+
+    setOutput("Running..."); // Show loading state
+
     try {
       const { run: result } = await executeCode(sourceCode);
-      setOutput(result.output);
+      setOutput(result?.output || "No output returned.");
     } catch (error) {
-      console.error(error);
+      console.error("Code execution error:", error);
+      setOutput("Execution failed. Please try again.");
     }
   };
 
   const nextQuestion = () => {
-    setCurrentQuestionIndex((prevIndex) => (prevIndex + 1) % questions.length);
+    setCurrentQuestionIndex((prevIndex) =>
+      prevIndex + 1 < questions.length ? prevIndex + 1 : 0
+    );
   };
 
   const previousQuestion = () => {
@@ -117,11 +143,6 @@ const CodeCollab = () => {
   };
 
   const currentQuestion = questions[currentQuestionIndex];
-
-  const handleEditor = (value) => {
-    setValue(value);
-    socket.emit("editor", { change: value, code });
-  };
 
   // if (leave) {
   //   return (

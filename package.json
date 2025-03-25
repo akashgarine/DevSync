@@ -1,0 +1,19 @@
+{
+  "name": "codingassistant",
+  "version": "1.0.0",
+  "description": "Code Collaborate",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm install --prefix backend",
+    "start": "npm run start --prefix backend",
+    "buildF": "npm install --prefix frontend",
+    "startF": "npm run start --prefix frontend"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "vercel": "^41.4.1"
+  }
+}

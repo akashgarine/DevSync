@@ -9,8 +9,10 @@ import {
   ArrowDown,
   Clock,
 } from "lucide-react";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+const socket = io.connect("https://codingassistant.onrender.com")
 
-const socket = io.connect("http://localhost:3000");
 
 const Forums = () => {
   const [roomCode, setRoomCode] = useState(null);
@@ -28,8 +30,8 @@ const Forums = () => {
 
   useEffect(() => {
     if (!code || !client) {
-      alert("Please login and join a room first");
-      nav("/home");
+      toast.error("Please login and join a room first");
+      nav("/");
     } else {
       setRoomCode(code);
       setUser(client);
@@ -121,7 +123,10 @@ const Forums = () => {
     localStorage.removeItem("roomCode");
     setRoomCode(null);
     localStorage.setItem("leave", true);
-    nav("/home");
+    setTimeout(() => {
+      nav("/");
+    }, 2000);
+
   };
 
   const scrollToBottom = () => {

@@ -3,8 +3,9 @@ import io from "socket.io-client";
 import { useNavigate } from "react-router-dom";
 import roomStore from "@/store/roomStore";
 import { ArrowDown, Check, Code2, MessageSquare, Play } from "lucide-react";
-
-const socket = io.connect("http://localhost:3000");
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+const socket = io.connect("https://codingassistant.onrender.com");
 
 const Home = () => {
   const nav = useNavigate();
@@ -40,10 +41,12 @@ const Home = () => {
           socket.emit("join-room", roomCode, localStorage.getItem("userId"));
           // nav("/room");
           localStorage.setItem("roomCode", roomCode); // Ensure it's stored first
+          toast.success(`You have successfully joined ${roomCode}`)
         }, 500); // 500ms delay
       }
     } catch (error) {
       console.log(error);
+      toast.error("Please check your room code")
     }
   };
 
@@ -54,6 +57,7 @@ const Home = () => {
     if (result.success) {
       // nav("/room");
       console.log(localStorage.getItem("roomCode"));
+      toast.success("Please reload to recieve your code")
     }
   };
 

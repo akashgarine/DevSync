@@ -1,13 +1,13 @@
 import { create } from "zustand";
 import { nanoid } from "nanoid";
 import axios from "axios";
+const BASE ="https://codingassistant.onrender.com/"
 
 const roomStore = create((set) => ({
   room: null,
   roomCode: null,
   userId: null,
   setRoom: (room) => set({ room }),
-
   generateCode: () => {
     const code = nanoid(8);
     set({ roomCode: code });
@@ -21,7 +21,7 @@ const roomStore = create((set) => ({
     console.log(userId);
    
     try {
-      const resp = await axios.post("http://localhost:3000/join-room", {
+      const resp = await axios.post(`${BASE}join-room`, {
         roomCode: roomCode,
         userId: userId,
       });
@@ -43,7 +43,7 @@ const roomStore = create((set) => ({
   create: async () => {
     try {
       const uid = localStorage.getItem("userId");
-      const resp = await axios.post("http://localhost:3000/create-room", {
+      const resp = await axios.post(`${BASE}create-room`, {
         userId: uid,
       });
       if (resp.data.success === false) {
