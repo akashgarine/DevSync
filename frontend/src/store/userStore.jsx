@@ -25,7 +25,7 @@ export const userStore = create((set) => ({
     try{
         const response = await axios.post(`${BASE}login`,Udata);
         console.log(response);
-        return response.data;
+        return response;
     }
     catch(error){
         console.error(error);
