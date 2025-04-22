@@ -13,14 +13,16 @@ const Login = ({ setIsLogin }) => {
   const handle = async (e) => {
     e.preventDefault();
     const resp = await login(formData);
-    if (resp) {
+    console.log(resp.status)
+    if (resp.status == 200) {
       setIsLogin(true);
       localStorage.setItem("isLogin", "true");
+      console.log(formData.email, resp.token,resp.id,resp.role)
       localStorage.setItem("email", formData.email);
-      localStorage.setItem("token", resp.token);
-      localStorage.setItem("userId", resp.id);
-      localStorage.setItem("role", resp.role);
-      toast.success(resp.message);
+      localStorage.setItem("token", resp.data.token);
+      localStorage.setItem("userId", resp.data.id);
+      localStorage.setItem("role", resp.data.role);
+      toast.success(resp.data.message);
       setTimeout(() => {
         nav("/");
       }, 750);

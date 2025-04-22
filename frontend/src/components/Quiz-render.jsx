@@ -10,6 +10,7 @@ import {
   LinearProgress,
 } from "@mui/material";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 export function QuizRenderer({ roomCode, userId }) {
   const [quizData, setQuizData] = useState([]);
@@ -20,7 +21,7 @@ export function QuizRenderer({ roomCode, userId }) {
   const [score, setScore] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const [answers, setAnswers] = useState([]);
-
+  const nav = useNavigate()
   useEffect(() => {
     async function fetchQuiz() {
       try {
@@ -88,7 +89,11 @@ export function QuizRenderer({ roomCode, userId }) {
       console.error("Error saving results:", error);
     }
   };
-
+ const handleExit = async () =>{
+  setTimeout(()=>{
+    nav("/")
+  },750)
+ }
   return (
     <div className="w-full max-w-2xl mx-auto">
       {!showResults ? (
@@ -171,7 +176,7 @@ export function QuizRenderer({ roomCode, userId }) {
           </CardContent>
           <div className="p-4 flex justify-end">
             <Button
-              onClick={() => window.location.reload()}
+              onClick={handleExit}
               variant="contained"
               color="primary"
             >

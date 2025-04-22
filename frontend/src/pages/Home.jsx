@@ -31,14 +31,14 @@ const Home = () => {
   const handleJoin = async (e) => {
     e.preventDefault();
     try {
-      const result = await join(roomCode);
-      console.log(roomCode);
+      const result = await join(code);
+      console.log(code);
       console.log(result); // Check the structure of the response
 
       if (result.success) {
         // Delay before emitting the event
         setTimeout(() => {
-          socket.emit("join-room", roomCode, localStorage.getItem("userId"));
+          socket.emit("join-room", code, localStorage.getItem("userId"));
           // nav("/room");
           localStorage.setItem("roomCode", roomCode); // Ensure it's stored first
           toast.success(`You have successfully joined ${roomCode}`)
@@ -54,7 +54,10 @@ const Home = () => {
     e.preventDefault();
     const result = await create();
     console.log(result);
-    if (result.success) {
+    if(result.message === 'Please login first'){
+      toast.error("Please login first")
+    }
+    else if (result.success) {
       // nav("/room");
       console.log(localStorage.getItem("roomCode"));
       toast.success("Please reload to recieve your code")
@@ -105,9 +108,9 @@ const Home = () => {
             </button>
           </div>
         </div>
-        {roomCode && (
+        {code && (
           <div className="mt-4 text-gray-300">
-            Your Room Code: <span className="font-semibold">{roomCode}</span>
+            Your Room Code: <span className="font-semibold">{code}</span>
           </div>
         )}
       </div>
