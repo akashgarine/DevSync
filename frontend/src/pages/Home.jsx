@@ -70,7 +70,7 @@ const Home = () => {
     try {
       console.log("Sending request with:", { roomCode, email });
       const res = await axios.post(
-        "http://localhost:5000/send-code",
+        "https://codingassistant.onrender.com/send-code",
         {
           roomCode: roomCode,
           email: email,
