@@ -159,7 +159,7 @@ const transporter = nodemailer.createTransport({
 // Add this before the server.listen
 app.post("/send-code", async (req, res) => {
   const { roomCode, email } = req.body;
-
+  console.log(roomCode, email);
   try {
     const mailOptions = {
       from: "theguywhoapproves@gmail.com",
@@ -186,7 +186,11 @@ app.post("/send-code", async (req, res) => {
   }
 });
 
-server.listen(3000, () => {
+server.listen(5000, (err) => {
+  if (err) {
+    console.error("Error starting server:", err);
+    return;
+  }
   connectDB();
-  console.log("listening on port 3000!");
+  console.log("Server is listening on port 5000!");
 });

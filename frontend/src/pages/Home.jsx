@@ -5,6 +5,8 @@ import roomStore from "@/store/roomStore";
 import { ArrowDown, Check, Code2, MessageSquare, Play } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import axios from "axios";
+
 const socket = io.connect("https://codingassistant.onrender.com");
 
 const Home = () => {
@@ -66,21 +68,34 @@ const Home = () => {
   const handleSend = async (e) => {
     e.preventDefault();
     try {
-      console.log("Clicked");
+      console.log("Sending request with:", { roomCode, email });
       const res = await axios.post(
-        "https://codingassistant.onrender.com/send-code",
+        "http://localhost:5000/send-code",
         {
           roomCode: roomCode,
           email: email,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
       );
-      if (res.message === "Email sent successfully") {
+      console.log("Response received:", res);
+      if (res.data.message === "Email sent successfully") {
         toast.success("Email sent!");
       } else {
         toast.error("Whoops! there is an error");
       }
     } catch (err) {
-      toast.error(err);
+      console.error("Error details:", {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+      });
+      toast.error(
+        err.response?.data?.message || err.message || "Failed to send email"
+      );
     }
   };
   return (
