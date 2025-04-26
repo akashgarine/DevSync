@@ -43,6 +43,9 @@ const roomStore = create((set) => ({
   create: async () => {
     try {
       const uid = localStorage.getItem("userId");
+      if (!uid){
+        return {message:"Please login first"}
+      }
       const resp = await axios.post(`${BASE}create-room`, {
         userId: uid,
       });
