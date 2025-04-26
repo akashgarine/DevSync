@@ -151,8 +151,8 @@ app.post("/results", async (req, res) => {
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: "theguywhoapproves@gmail.com",
+    pass: "bkpt okmx dkfh frmu",
   },
 });
 
@@ -162,7 +162,7 @@ app.post("/send-code", async (req, res) => {
 
   try {
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: "theguywhoapproves@gmail.com",
       to: email,
       subject: "Your Room Code for CodeCollab",
       html: `
