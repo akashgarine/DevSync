@@ -11,7 +11,9 @@ const NavBar = () => {
   const location = useLocation();
   const hideNavbarPaths = ["/signup", "/login"];
   const [value, setValue] = useState(0);
-  const [isLogged, setIsLogged] = useState(localStorage.getItem("isLogin") === "true");
+  const [isLogged, setIsLogged] = useState(
+    localStorage.getItem("isLogin") === "true"
+  );
 
   useEffect(() => {
     const handleStorageChange = () => {
@@ -37,6 +39,7 @@ const NavBar = () => {
 
   const handleLogOut = () => {
     localStorage.removeItem("isLogin");
+    localStorage.clear();
     window.dispatchEvent(new Event("storage")); // Trigger event to update NavBar
     setIsLogged(false);
     nav("/");
@@ -55,9 +58,19 @@ const NavBar = () => {
           className="flex-grow"
         >
           <Tab icon={<HomeIcon />} label="Home" component={Link} to="/" />
-          <Tab icon={<CodeIcon />} label="Collab" component={Link} to="/collab" />
+          <Tab
+            icon={<CodeIcon />}
+            label="Collab"
+            component={Link}
+            to="/collab"
+          />
           <Tab icon={<QuizIcon />} label="Test" component={Link} to="/test" />
-          <Tab icon={<ForumIcon />} label="Forums" component={Link} to="/forums" />
+          <Tab
+            icon={<ForumIcon />}
+            label="Forums"
+            component={Link}
+            to="/forums"
+          />
         </Tabs>
 
         {/* Styled Login/Logout Button */}

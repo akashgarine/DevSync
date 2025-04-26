@@ -44,7 +44,6 @@ const Forums = () => {
       }
     }
 
-    // Simulate fetching online user count (replace with actual implementation)
     socket.on("user-count-update", (count) => {
       setOnlineUsers(count);
     });
@@ -255,7 +254,7 @@ const Forums = () => {
                     `}
                   >
                     <p className="text-white break-words">{msg.message}</p>
-                    <span className="text-xs text-gray-300 block text-right mt-1 flex items-center justify-end">
+                    <span className="text-xs text-gray-300 flex items-center justify-end">
                       <Clock className="h-3 w-3 mr-1" />
                       {formatTime(msg.timestamp)}
                     </span>
