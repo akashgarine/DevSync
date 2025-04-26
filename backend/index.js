@@ -147,7 +147,6 @@ app.post("/results", async (req, res) => {
   }
 });
 
-
 server.listen(3000, () => {
   connectDB();
   console.log("listening on port 3000!");
