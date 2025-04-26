@@ -8,8 +8,8 @@ import authRoutes from "./routes/authRoutes.js";
 import { rooms, users } from "./sharedState/sharedState.js";
 import roomRoutes from "./routes/roomRoutes.js";
 import Quiz from "./models/Quiz.js"; // Fixed casing to match actual file
+import nodemailer from "nodemailer";
 dotenv.config();
-
 
 const app = express();
 app.use(json());
@@ -144,6 +144,45 @@ app.post("/results", async (req, res) => {
     res.json({ message: "Results saved successfully!" });
   } catch (error) {
     res.status(500).json({ message: "Error saving results", error });
+  }
+});
+
+// Nodemailer configuration
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+// Add this before the server.listen
+app.post("/send-code", async (req, res) => {
+  const { roomCode, email } = req.body;
+
+  try {
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Your Room Code for CodeCollab",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #4F46E5;">Welcome to CodeCollab!</h2>
+          <p>Here is your room code to join the collaborative coding session:</p>
+          <div style="background-color: #1F2937; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h3 style="color: #fff; margin: 0;">Room Code: ${roomCode}</h3>
+          </div>
+          <p>You can use this code to join the room and start coding with your team.</p>
+          <p>Happy coding!</p>
+        </div>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    res.json({ message: "Email sent successfully" });
+  } catch (error) {
+    console.error("Error sending email:", error);
+    res.status(500).json({ message: "Error sending email" });
   }
 });
 
