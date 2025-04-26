@@ -31,14 +31,14 @@ const Home = () => {
   const handleJoin = async (e) => {
     e.preventDefault();
     try {
-      const result = await join(code);
-      console.log(code);
+      const result = await join(roomCode);
+      console.log(roomCode);
       console.log(result); // Check the structure of the response
 
       if (result.success) {
         // Delay before emitting the event
         setTimeout(() => {
-          socket.emit("join-room", code, localStorage.getItem("userId"));
+          socket.emit("join-room", roomCode, localStorage.getItem("userId"));
           // nav("/room");
           localStorage.setItem("roomCode", roomCode); // Ensure it's stored first
           toast.success(`You have successfully joined ${roomCode}`)
