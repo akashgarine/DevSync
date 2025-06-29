@@ -76,7 +76,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="/:url" element={<VideoCall />} />
+        <Route path="/videoCall" element={<VideoCall />} />
         <Route
           path="/test"
           element={
