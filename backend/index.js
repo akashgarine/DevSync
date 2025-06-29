@@ -31,25 +31,43 @@ const connectDB = async () => {
     console.error("Error connecting to database");
   }
 };
-
+let timeOnline = {};
 //Routes
 app.use("/", authRoutes);
 app.use("/", roomRoutes);
-
+let connections = {};
 io.on("connection", (socket) => {
   console.log("Client connected with id", socket.id);
 
   socket.on("join-room", ({ roomCode, userId }) => {
     socket.join(roomCode);
+
+    // Track users
     if (!rooms[roomCode]) {
       rooms[roomCode] = [];
     }
-    rooms[roomCode].push(userId);
+    if (!rooms[roomCode].includes(userId)) {
+      rooms[roomCode].push(userId);
+    }
     users[userId] = roomCode;
-    io.to(roomCode).emit("join-room", { roomCode });
-    // console.log(`User ${userId} joined room ${roomCode}`);
+
+    // Track socket connections for video call
+    if (!connections[roomCode]) {
+      connections[roomCode] = [];
+    }
+    if (!connections[roomCode].includes(socket.id)) {
+      connections[roomCode].push(socket.id);
+    }
+
+    timeOnline[socket.id] = new Date();
+
+    // Notify all clients in room
+    io.to(roomCode).emit("user-joined", socket.id, connections[roomCode]);
   });
 
+  socket.on("signal", (toId, message) => {
+    io.to(toId).emit("signal", socket.id, message);
+  });
   socket.on("text-message", ({ message, client, code }) => {
     io.to(code).emit("text-message", { message, client });
   });
