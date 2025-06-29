@@ -14,18 +14,16 @@ import StopScreenShareIcon from "@mui/icons-material/StopScreenShare";
 // import server from "../environment";
 import { useParams } from "react-router-dom";
 
-
-
 const server_url = "https://codingassistant.onrender.com";
 
 var connections = {};
 
 const peerConfigConnections = {
-    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+  iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
 };
 
 export default function VideoMeetComponent() {
-    const { url: roomCode } = useParams(); // meeting code is now `roomCode`
+  let roomCode = localStorage.getItem("roomCode"); // meeting code is now `roomCode`
   var socketRef = useRef();
   let socketIdRef = useRef();
 
@@ -467,7 +465,6 @@ export default function VideoMeetComponent() {
     window.location.href = "/";
   };
 
- 
   let connect = () => {
     setAskForUsername(false);
     getMedia();
