@@ -28,6 +28,9 @@ export function QuizRenderer({ roomCode, userId }) {
         const response = await axios.post( "https://codingassistant.onrender.com/api/get-quiz",
           { roomCode }
         );
+        // const response = await axios.post( "http://localhost:5000/api/get-quiz",
+        //   { roomCode }
+        // );
         setQuizData(response.data.quizData);
         setLoading(false);
       } catch (error) {
@@ -78,7 +81,8 @@ export function QuizRenderer({ roomCode, userId }) {
 
   const saveResults = async () => {
     try {
-      await axios.post(`https://codingassistant.onrender.com/results`, {
+      // change to onrender  -> http://localhost:5000
+      await axios.post(`"https://codingassistant.onrender.com/results`, {
         userId,
         roomCode,
         score,

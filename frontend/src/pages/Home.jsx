@@ -8,7 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 
 const socket = io.connect("https://codingassistant.onrender.com");
-
+// const  socket = io.connect("http://localhost:5000");
 const Home = () => {
   const nav = useNavigate();
   const { join, create } = roomStore();
@@ -69,6 +69,7 @@ const Home = () => {
     e.preventDefault();
     try {
       console.log("Sending request with:", { roomCode, email });
+      //change to onrender
       const res = await axios.post(
         "https://codingassistant.onrender.com/send-code",
         {
