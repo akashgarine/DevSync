@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import axios from "axios";
-const BASE = "https://codingassistant.onrender.com/"
-// const BASE = "http://localhost:5000/";
+const BASE = "https://codingassistant.onrender.com/";
+// const BASE = "https://codingassistant.onrender.com/";
 export const userStore = create((set) => ({
   user: null,
   setUser: (user) => set({ user }),
