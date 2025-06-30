@@ -23,7 +23,7 @@ const peerConfigConnections = {
 };
 
 export default function VideoMeetComponent() {
-  let roomCode = localStorage.getItem("roomCode"); // meeting code is now `roomCode`
+  let roomCode = localStorage.getItem("roomCode"); // meet  ing code is now `roomCode`
   var socketRef = useRef();
   let socketIdRef = useRef();
 
@@ -314,8 +314,9 @@ export default function VideoMeetComponent() {
 
   let connectToSocketServer = () => {
     socketRef.current = io.connect(server_url, { secure: false });
-
-    socketRef.current.on("signal", gotMessageFromServer);
+    socketRef.current.on("signal", ({ fromId, message }) => {
+      gotMessageFromServer(fromId, message);
+    });
 
     socketRef.current.on("connect", () => {
       socketRef.current.emit("join-room", { roomCode, userId: username });

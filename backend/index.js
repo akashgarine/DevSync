@@ -64,10 +64,8 @@ io.on("connection", (socket) => {
     // Notify all clients in room
     io.to(roomCode).emit("user-joined", socket.id, connections[roomCode]);
   });
+  socket.to(toId).emit("signal", { fromId: socket.id, message });
 
-  socket.on("signal", (toId, message) => {
-    io.to(toId).emit("signal", socket.id, message);
-  });
   socket.on("text-message", ({ message, client, code }) => {
     io.to(code).emit("text-message", { message, client });
   });
