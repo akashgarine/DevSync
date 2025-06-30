@@ -32,10 +32,11 @@ const connectDB = async () => {
   }
 };
 let timeOnline = {};
+let connections = {};
 //Routes
 app.use("/", authRoutes);
 app.use("/", roomRoutes);
-let connections = {};
+
 io.on("connection", (socket) => {
   console.log("Client connected with id", socket.id);
 
@@ -43,18 +44,12 @@ io.on("connection", (socket) => {
     socket.join(roomCode);
 
     // Track users
-    if (!rooms[roomCode]) {
-      rooms[roomCode] = [];
-    }
-    if (!rooms[roomCode].includes(userId)) {
-      rooms[roomCode].push(userId);
-    }
+    if (!rooms[roomCode]) rooms[roomCode] = [];
+    if (!rooms[roomCode].includes(userId)) rooms[roomCode].push(userId);
     users[userId] = roomCode;
 
     // Track socket connections for video call
-    if (!connections[roomCode]) {
-      connections[roomCode] = [];
-    }
+    if (!connections[roomCode]) connections[roomCode] = [];
     if (!connections[roomCode].includes(socket.id)) {
       connections[roomCode].push(socket.id);
     }
@@ -64,24 +59,33 @@ io.on("connection", (socket) => {
     // Notify all clients in room
     io.to(roomCode).emit("user-joined", socket.id, connections[roomCode]);
   });
-  socket.to(toId).emit("signal", { fromId: socket.id, message });
+
+  // ✅ Signal handler to broadcast to everyone in the room except sender
+  socket.on("signal", ({ roomCode, message }) => {
+    socket.to(roomCode).emit("signal", { fromId: socket.id, message });
+  });
 
   socket.on("text-message", ({ message, client, code }) => {
     io.to(code).emit("text-message", { message, client });
   });
+
   socket.on("leave-room", ({ code, client }) => {
     if (rooms[code]) {
-      rooms[code].splice(rooms[code].indexOf(client), 1);
+      rooms[code] = rooms[code].filter((id) => id !== client);
       delete users[client];
       socket.leave(code);
-      // console.log(`${client} left room ${code}`);
     }
   });
+
   socket.on("editor", ({ change, code }) => {
     io.to(code).emit("editor", change);
   });
+
   socket.on("disconnect", () => {
     console.log("Client disconnected");
+    for (const room in connections) {
+      connections[room] = connections[room].filter((id) => id !== socket.id);
+    }
   });
 });
 // Import the Quiz model
