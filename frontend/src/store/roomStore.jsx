@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import { nanoid } from "nanoid";
 import axios from "axios";
-const BASE ="https://codingassistant.onrender.com/"
-// const BASE = "http://localhost:5000/"
+const BASE = "https://codingassistant.onrender.com/";
+// const BASE = "https://codingassistant.onrender.com/"
 const roomStore = create((set) => ({
   room: null,
   roomCode: null,
@@ -15,11 +15,12 @@ const roomStore = create((set) => ({
   },
 
   join: async (roomCode) => {
+    const uid = nanoid(4);
     if (!roomCode) return { message: "Enter a room Code" };
 
-    const userId = localStorage.getItem("userId");
+    const userId = localStorage.setItem("userId", uid);
     console.log(userId);
-   
+
     try {
       const resp = await axios.post(`${BASE}join-room`, {
         roomCode: roomCode,
@@ -42,9 +43,9 @@ const roomStore = create((set) => ({
 
   create: async () => {
     try {
-      const uid = localStorage.getItem("userId");
-      if (!uid){
-        return {message:"Please login first"}
+      const uid = nanoid(4);
+      if (!uid) {
+        return { message: "Please login first" };
       }
       const resp = await axios.post(`${BASE}create-room`, {
         userId: uid,
@@ -53,7 +54,9 @@ const roomStore = create((set) => ({
         return { success: resp.data.success, message: resp.data.message };
       } else {
         const roomCode = resp.data.roomCode;
+        localStorage.setItem("userId", uid);
         set({ room: roomCode });
+
         localStorage.setItem("roomCode", roomCode);
         console.log(localStorage.getItem("roomCode"));
         return { success: resp.data.success, message: resp.data.message };

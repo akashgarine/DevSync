@@ -8,7 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 
 const socket = io.connect("https://codingassistant.onrender.com");
-// const  socket = io.connect("http://localhost:5000");
+// const  socket = io.connect("https://codingassistant.onrender.com");
 const Home = () => {
   const nav = useNavigate();
   const { join, create } = roomStore();

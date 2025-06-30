@@ -9,10 +9,10 @@ import {
   ArrowDown,
   Clock,
 } from "lucide-react";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-const socket = io.connect("https://codingassistant.onrender.com")
-// const  socket = io.connect("http://localhost:5000");
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+const socket = io.connect("https://codingassistant.onrender.com");
+// const  socket = io.connect("https://codingassistant.onrender.com");
 
 const Forums = () => {
   const [roomCode, setRoomCode] = useState(null);
@@ -21,7 +21,7 @@ const Forums = () => {
   const [chat, setChat] = useState([]);
   const [leave, setLeave] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
-  const [onlineUsers, setOnlineUsers] = useState(1); 
+  const [onlineUsers, setOnlineUsers] = useState(1);
   const messagesEndRef = useRef(null);
   const chatContainerRef = useRef(null);
   const nav = useNavigate();
@@ -36,7 +36,6 @@ const Forums = () => {
       setRoomCode(code);
       setUser(client);
       socket.emit("join-room", { roomCode: code, userId: client });
-
 
       const savedChat = localStorage.getItem(`chat_${code}`);
       if (savedChat) {
@@ -80,7 +79,6 @@ const Forums = () => {
     return () => socket.off("text-message", handleReceiveMessage);
   }, [roomCode]);
 
- 
   useEffect(() => {
     const handleScroll = () => {
       if (!chatContainerRef.current) return;
@@ -97,7 +95,6 @@ const Forums = () => {
       return () => container.removeEventListener("scroll", handleScroll);
     }
   }, []);
-
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -125,7 +122,6 @@ const Forums = () => {
     setTimeout(() => {
       nav("/");
     }, 2000);
-
   };
 
   const scrollToBottom = () => {
@@ -133,7 +129,6 @@ const Forums = () => {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   };
-
 
   const formatTime = (timestamp) => {
     if (!timestamp) return "";
@@ -143,7 +138,6 @@ const Forums = () => {
       minute: "2-digit",
     });
   };
-
 
   const groupedMessages = chat.reduce((groups, message, index) => {
     const prevMessage = chat[index - 1];
