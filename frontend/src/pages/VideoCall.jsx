@@ -16,7 +16,7 @@ const VideoCall = () => {
   const [isCameraOff, setIsCameraOff] = useState(false);
   const [screenSharing, setScreenSharing] = useState(false);
   const screenTrackRef = useRef(null);
-  const [alreadyJoinedRoom,setAlreadyJoinedRoom] = useState(true);
+
   const iceConfig = {
     iceServers: [
       {
@@ -45,12 +45,10 @@ const VideoCall = () => {
         localStorage.setItem("userId", socketRef.current.id);
       }
 
-      if (!alreadyJoinedRoom) {
-        socketRef.current.emit("join-room", {
-          roomCode,
-          userId: socketRef.current.id,
-        });
-      }
+      socketRef.current.emit("join-room", {
+        roomCode,
+        userId: socketRef.current.id,
+      });
 
       await setupMedia();
     });
@@ -127,6 +125,8 @@ const VideoCall = () => {
   }, []);
 
   const setupMedia = async () => {
+    if (localVideoRef.current?.srcObject) return;
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: true,
@@ -142,7 +142,7 @@ const VideoCall = () => {
   const createPeerConnection = (remoteUserId) => {
     const pc = new RTCPeerConnection(iceConfig);
 
-    const localStream = localVideoRef.current.srcObject;
+    const localStream = localVideoRef.current?.srcObject;
     if (localStream) {
       localStream.getTracks().forEach((track) => {
         pc.addTrack(track, localStream);
@@ -177,7 +177,8 @@ const VideoCall = () => {
   };
 
   const toggleMute = () => {
-    const stream = localVideoRef.current.srcObject;
+    const stream = localVideoRef.current?.srcObject;
+    if (!stream) return;
     stream
       .getAudioTracks()
       .forEach((track) => (track.enabled = !track.enabled));
@@ -185,7 +186,8 @@ const VideoCall = () => {
   };
 
   const toggleCamera = () => {
-    const stream = localVideoRef.current.srcObject;
+    const stream = localVideoRef.current?.srcObject;
+    if (!stream) return;
     stream
       .getVideoTracks()
       .forEach((track) => (track.enabled = !track.enabled));
@@ -219,12 +221,12 @@ const VideoCall = () => {
   };
 
   const stopScreenShare = () => {
-    const stream = localVideoRef.current.srcObject;
-    const videoTrack = stream.getVideoTracks()[0];
+    const stream = localVideoRef.current?.srcObject;
+    const videoTrack = stream?.getVideoTracks()[0];
 
     Object.values(peerConnectionsRef.current).forEach((pc) => {
       const sender = pc.getSenders().find((s) => s.track.kind === "video");
-      if (sender) sender.replaceTrack(videoTrack);
+      if (sender && videoTrack) sender.replaceTrack(videoTrack);
     });
 
     if (screenTrackRef.current) {
