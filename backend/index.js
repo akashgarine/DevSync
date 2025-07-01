@@ -61,9 +61,16 @@ io.on("connection", (socket) => {
   });
 
   // ✅ Signal handler to broadcast to everyone in the room except sender
-  socket.on("signal", ({ roomCode, message }) => {
-    socket.to(roomCode).emit("signal", { fromId: socket.id, message });
-  });
+  socket.on("signal", ({ roomCode, message, toId }) => {
+  if (toId) {
+    // Directly route to a specific peer
+    io.to(toId).emit("signal", socket.id, message);
+  } else {
+    // Broadcast to all peers in the room except sender
+    socket.to(roomCode).emit("signal", socket.id, message);
+  }
+});
+
 
   socket.on("text-message", ({ message, client, code }) => {
     io.to(code).emit("text-message", { message, client });
@@ -82,9 +89,14 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log("Client disconnected");
+    console.log("Client disconnected:", socket.id);
     for (const room in connections) {
-      connections[room] = connections[room].filter((id) => id !== socket.id);
+      if (connections[room].includes(socket.id)) {
+        connections[room] = connections[room].filter(id => id !== socket.id);
+        // Notify other users in the room
+        io.to(room).emit("user-left", socket.id);
+        console.log(`Notified room ${room} about user ${socket.id} leaving`);
+      }
     }
   });
 });
