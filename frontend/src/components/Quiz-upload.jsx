@@ -52,12 +52,15 @@ export function QuizUpload({ onQuizUpload, roomCode }) {
       setIsUploading(true);
       const data = JSON.parse(jsonData);
       validateQuizData(data); // Ensure validation
-
-      const response = await fetch(`https://codingassistant.onrender.com/api/save-quiz`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ roomCode, quizData: data }), // Ensure correct format
-      });
+      // change to onrender
+      const response = await fetch(
+        `https://codingassistant.onrender.com/api/save-quiz`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ roomCode, quizData: data }), // Ensure correct format
+        }
+      );
 
       const result = await response.json();
       if (!response.ok) {
@@ -66,7 +69,7 @@ export function QuizUpload({ onQuizUpload, roomCode }) {
 
       onQuizUpload(data);
     } catch (err) {
-      console.log(err)
+      console.log(err);
       setError("Invalid JSON data. Please check the format.");
     } finally {
       setIsUploading(false);

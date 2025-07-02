@@ -71,6 +71,12 @@ const NavBar = () => {
             component={Link}
             to="/forums"
           />
+          <Tab
+            icon={<ForumIcon />}
+            label="Video"
+            component={Link}
+            to="/videoCall"
+          />
         </Tabs>
 
         {/* Styled Login/Logout Button */}

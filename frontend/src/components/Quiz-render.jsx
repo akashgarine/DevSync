@@ -21,13 +21,17 @@ export function QuizRenderer({ roomCode, userId }) {
   const [score, setScore] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const [answers, setAnswers] = useState([]);
-  const nav = useNavigate()
+  const nav = useNavigate();
   useEffect(() => {
     async function fetchQuiz() {
       try {
-        const response = await axios.post( "https://codingassistant.onrender.com/api/get-quiz",
+        const response = await axios.post(
+          "https://codingassistant.onrender.com/api/get-quiz",
           { roomCode }
         );
+        // const response = await axios.post( "https://codingassistant.onrender.com/api/get-quiz",
+        //   { roomCode }
+        // );
         setQuizData(response.data.quizData);
         setLoading(false);
       } catch (error) {
@@ -78,7 +82,8 @@ export function QuizRenderer({ roomCode, userId }) {
 
   const saveResults = async () => {
     try {
-      await axios.post(`https://codingassistant.onrender.com/results`, {
+      // change to onrender  -> https://codingassistant.onrender.com
+      await axios.post(`"https://codingassistant.onrender.com/results`, {
         userId,
         roomCode,
         score,
@@ -89,11 +94,11 @@ export function QuizRenderer({ roomCode, userId }) {
       console.error("Error saving results:", error);
     }
   };
- const handleExit = async () =>{
-  setTimeout(()=>{
-    nav("/")
-  },750)
- }
+  const handleExit = async () => {
+    setTimeout(() => {
+      nav("/");
+    }, 750);
+  };
   return (
     <div className="w-full max-w-2xl mx-auto">
       {!showResults ? (
@@ -175,11 +180,7 @@ export function QuizRenderer({ roomCode, userId }) {
             </ul>
           </CardContent>
           <div className="p-4 flex justify-end">
-            <Button
-              onClick={handleExit}
-              variant="contained"
-              color="primary"
-            >
+            <Button onClick={handleExit} variant="contained" color="primary">
               Exit Quiz
             </Button>
           </div>

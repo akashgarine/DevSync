@@ -31,7 +31,8 @@ const connectDB = async () => {
     console.error("Error connecting to database");
   }
 };
-
+let timeOnline = {};
+let connections = {};
 //Routes
 app.use("/", authRoutes);
 app.use("/", roomRoutes);
@@ -41,31 +42,62 @@ io.on("connection", (socket) => {
 
   socket.on("join-room", ({ roomCode, userId }) => {
     socket.join(roomCode);
-    if (!rooms[roomCode]) {
-      rooms[roomCode] = [];
-    }
-    rooms[roomCode].push(userId);
+
+    // Track users
+    if (!rooms[roomCode]) rooms[roomCode] = [];
+    if (!rooms[roomCode].includes(userId)) rooms[roomCode].push(userId);
     users[userId] = roomCode;
-    io.to(roomCode).emit("join-room", { roomCode });
-    // console.log(`User ${userId} joined room ${roomCode}`);
+
+    // Track socket connections for video call
+    if (!connections[roomCode]) connections[roomCode] = [];
+    if (!connections[roomCode].includes(socket.id)) {
+      connections[roomCode].push(socket.id);
+    }
+
+    timeOnline[socket.id] = new Date();
+
+    // Notify all clients in room
+    io.to(roomCode).emit("user-joined", socket.id, connections[roomCode]);
   });
+
+  // ✅ Signal handler to broadcast to everyone in the room except sender
+  socket.on("signal", ({ roomCode, message, toId }) => {
+  if (toId) {
+    // Directly route to a specific peer
+    io.to(toId).emit("signal", socket.id, message);
+  } else {
+    // Broadcast to all peers in the room except sender
+    socket.to(roomCode).emit("signal", socket.id, message);
+  }
+});
+
 
   socket.on("text-message", ({ message, client, code }) => {
     io.to(code).emit("text-message", { message, client });
   });
+
   socket.on("leave-room", ({ code, client }) => {
     if (rooms[code]) {
-      rooms[code].splice(rooms[code].indexOf(client), 1);
+      rooms[code] = rooms[code].filter((id) => id !== client);
       delete users[client];
       socket.leave(code);
-      // console.log(`${client} left room ${code}`);
     }
   });
+
   socket.on("editor", ({ change, code }) => {
     io.to(code).emit("editor", change);
   });
+
   socket.on("disconnect", () => {
-    console.log("Client disconnected");
+    console.log("Client disconnected:", socket.id);
+    for (const room in connections) {
+      if (connections[room].includes(socket.id)) {
+        connections[room] = connections[room].filter(id => id !== socket.id);
+        // Notify other users in the room
+        io.to(room).emit("user-left", socket.id);
+        console.log(`Notified room ${room} about user ${socket.id} leaving`);
+      }
+    }
   });
 });
 // Import the Quiz model

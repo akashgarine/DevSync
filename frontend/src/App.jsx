@@ -18,7 +18,7 @@ import NotFound from "./pages/NotFound";
 // import QuizCreate from "./pages/QuizCreate";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
-
+import VideoCall from "./pages/VideoCall";
 function App() {
   const [isLogin, setIsLogin] = useState(
     localStorage.getItem("isLogin") === "true"
@@ -76,6 +76,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/videoCall" element={<VideoCall />} />
         <Route
           path="/test"
           element={

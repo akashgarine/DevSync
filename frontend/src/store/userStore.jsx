@@ -1,6 +1,7 @@
 import { create } from "zustand";
-import axios from 'axios';
-const BASE = "https://codingassistant.onrender.com/"
+import axios from "axios";
+const BASE = "https://codingassistant.onrender.com/";
+// const BASE = "https://codingassistant.onrender.com/";
 export const userStore = create((set) => ({
   user: null,
   setUser: (user) => set({ user }),
@@ -18,18 +19,17 @@ export const userStore = create((set) => ({
       return { message: "Error occurred while signing up" };
     }
   },
-  login: async (Udata) =>{
-    if(!Udata.email || !Udata.password){
-        return {message:"Please enter all the fields"};
+  login: async (Udata) => {
+    if (!Udata.email || !Udata.password) {
+      return { message: "Please enter all the fields" };
     }
-    try{
-        const response = await axios.post(`${BASE}login`,Udata);
-        console.log(response);
-        return response;
+    try {
+      const response = await axios.post(`${BASE}login`, Udata);
+      console.log(response);
+      return response;
+    } catch (error) {
+      console.error(error);
+      return { message: "Error occurred while logging in" };
     }
-    catch(error){
-        console.error(error);
-        return {message:"Error occurred while logging in"};
-    }
-  }
+  },
 }));
