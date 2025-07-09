@@ -13,11 +13,11 @@ const Login = ({ setIsLogin }) => {
   const handle = async (e) => {
     e.preventDefault();
     const resp = await login(formData);
-    console.log(resp.status)
+    console.log(resp.status);
     if (resp.status == 200) {
       setIsLogin(true);
       localStorage.setItem("isLogin", "true");
-      console.log(formData.email, resp.token,resp.id,resp.role)
+      console.log(formData.email, resp.token, resp.id, resp.role);
       localStorage.setItem("email", formData.email);
       localStorage.setItem("token", resp.data.token);
       localStorage.setItem("userId", resp.data.id);
@@ -87,6 +87,7 @@ const Login = ({ setIsLogin }) => {
           </Link>
         </p>
       </div>
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
 };

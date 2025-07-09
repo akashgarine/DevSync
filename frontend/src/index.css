@@ -1,3 +1,71 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+.animate-marquee {
+  animation: marquee 20s linear infinite;
+}
+@keyframes marquee {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+.feature-top-left {
+  top: 15%;
+  left: 25%;
+}
+.feature-top-center {
+  top: 5%;
+  left: 50%;
+}
+.feature-top-right {
+  top: 15%;
+  left: 75%;
+}
+.feature-bottom-right {
+  top: 75%;
+  left: 70%;
+}
+.feature-bottom-left {
+  top: 75%;
+  left: 30%;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animated-gradient-bg {
+  background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #000000);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes spinCarousel {
+  from {
+    transform: perspective(1000px) rotateX(-16deg) rotateY(0deg);
+  }
+  to {
+    transform: perspective(1000px) rotateX(-16deg) rotateY(360deg);
+  }
+}
+
+.carousel-spin {
+  animation: spinCarousel 20s linear infinite;
+  transform-style: preserve-3d;
+}
+

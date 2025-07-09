@@ -5,7 +5,9 @@ import HomeIcon from "@mui/icons-material/Home";
 import CodeIcon from "@mui/icons-material/Code";
 import QuizIcon from "@mui/icons-material/Quiz";
 import ForumIcon from "@mui/icons-material/Forum";
-
+import ChatRoundedIcon from "@mui/icons-material/ChatRounded";
+import VideoChatRoundedIcon from "@mui/icons-material/VideoChatRounded";
+import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 const NavBar = () => {
   const nav = useNavigate();
   const location = useLocation();
@@ -47,7 +49,7 @@ const NavBar = () => {
 
   return !hideNavbarPaths.includes(location.pathname) ? (
     <>
-      <nav className="flex justify-between items-center px-6 py-3 bg-gray-900 text-white shadow-lg">
+      <nav className="flex justify-between items-center px-6 py-3 bg-[#171717] text-white shadow-lg">
         <Tabs
           value={value}
           onChange={handleChange}
@@ -66,13 +68,13 @@ const NavBar = () => {
           />
           <Tab icon={<QuizIcon />} label="Test" component={Link} to="/test" />
           <Tab
-            icon={<ForumIcon />}
+            icon={<ChatRoundedIcon />}
             label="Forums"
             component={Link}
             to="/forums"
           />
           <Tab
-            icon={<ForumIcon />}
+            icon={<VideoChatRoundedIcon />}
             label="Video"
             component={Link}
             to="/videoCall"
@@ -86,6 +88,7 @@ const NavBar = () => {
             color="error"
             className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition"
             onClick={handleLogOut}
+            startIcon={<LogoutRoundedIcon />}
           >
             Log Out
           </Button>
