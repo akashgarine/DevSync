@@ -36,70 +36,110 @@ let connections = {};
 //Routes
 app.use("/", authRoutes);
 app.use("/", roomRoutes);
-
 io.on("connection", (socket) => {
-  console.log("Client connected with id", socket.id);
+  console.log("Client connected with id:", socket.id);
 
   socket.on("join-room", ({ roomCode, userId }) => {
-    socket.join(roomCode);
+    try {
+      socket.join(roomCode);
+      socket.roomCode = roomCode;
 
-    // Track users
-    if (!rooms[roomCode]) rooms[roomCode] = [];
-    if (!rooms[roomCode].includes(userId)) rooms[roomCode].push(userId);
-    users[userId] = roomCode;
+      // Track users
+      if (!rooms[roomCode]) rooms[roomCode] = [];
+      if (!rooms[roomCode].includes(userId)) rooms[roomCode].push(userId);
+      users[userId] = roomCode;
 
-    // Track socket connections for video call
-    if (!connections[roomCode]) connections[roomCode] = [];
-    if (!connections[roomCode].includes(socket.id)) {
-      connections[roomCode].push(socket.id);
+      // Track socket connections
+      if (!connections[roomCode]) connections[roomCode] = [];
+      if (!connections[roomCode].includes(socket.id)) {
+        connections[roomCode].push(socket.id);
+      }
+
+      timeOnline[socket.id] = new Date();
+      io.to(roomCode).emit("user-joined", socket.id, connections[roomCode]);
+      console.log(`User ${userId} joined room ${roomCode}`);
+    } catch (error) {
+      console.error("Error in join-room:", error);
     }
-
-    timeOnline[socket.id] = new Date();
-
-    // Notify all clients in room
-    io.to(roomCode).emit("user-joined", socket.id, connections[roomCode]);
   });
 
-  // ✅ Signal handler to broadcast to everyone in the room except sender
+  // Signaling for WebRTC
   socket.on("signal", ({ roomCode, message, toId }) => {
-  if (toId) {
-    // Directly route to a specific peer
-    io.to(toId).emit("signal", socket.id, message);
-  } else {
-    // Broadcast to all peers in the room except sender
-    socket.to(roomCode).emit("signal", socket.id, message);
-  }
-});
-
-
-  socket.on("text-message", ({ message, client, code }) => {
-    io.to(code).emit("text-message", { message, client });
-  });
-
-  socket.on("leave-room", ({ code, client }) => {
-    if (rooms[code]) {
-      rooms[code] = rooms[code].filter((id) => id !== client);
-      delete users[client];
-      socket.leave(code);
+    try {
+      if (toId) {
+        io.to(toId).emit("signal", socket.id, message);
+      } else {
+        socket.to(roomCode).emit("signal", socket.id, message);
+      }
+    } catch (error) {
+      console.error("Error in signal:", error);
     }
   });
 
-  socket.on("editor", ({ change, code }) => {
-    io.to(code).emit("editor", change);
+  // Collaborative cursor broadcasting
+  socket.on("cursor-position", ({ userId, position }) => {
+    try {
+      const room = socket.roomCode;
+      if (room && userId && position) {
+        socket.to(room).emit("cursor-position", { userId, position });
+      }
+    } catch (error) {
+      console.error("Error in cursor-position:", error);
+    }
   });
 
+  // Handle editor changes
+  socket.on("editor", ({ change, code }) => {
+    try {
+      io.to(code).emit("editor", change);
+    } catch (error) {
+      console.error("Error in editor:", error);
+    }
+  });
+
+  // Handle text messages
+  socket.on("text-message", ({ message, client, code }) => {
+    try {
+      io.to(code).emit("text-message", { message, client });
+    } catch (error) {
+      console.error("Error in text-message:", error);
+    }
+  });
+
+  // Handle leaving a room
+  socket.on("leave-room", ({ code, client }) => {
+    try {
+      if (rooms[code]) {
+        rooms[code] = rooms[code].filter((id) => id !== client);
+        delete users[client];
+        socket.leave(code);
+        console.log(`User ${client} left room ${code}`);
+      }
+    } catch (error) {
+      console.error("Error in leave-room:", error);
+    }
+  });
+
+  // Handle disconnection
   socket.on("disconnect", () => {
     console.log("Client disconnected:", socket.id);
-    for (const room in connections) {
-      if (connections[room].includes(socket.id)) {
-        connections[room] = connections[room].filter(id => id !== socket.id);
-        // Notify other users in the room
-        io.to(room).emit("user-left", socket.id);
-        console.log(`Notified room ${room} about user ${socket.id} leaving`);
+    try {
+      for (const room in connections) {
+        if (connections[room].includes(socket.id)) {
+          connections[room] = connections[room].filter(
+            (id) => id !== socket.id
+          );
+          io.to(room).emit("user-left", socket.id);
+          console.log(`Notified room ${room} about user ${socket.id} leaving`);
+        }
       }
+      delete timeOnline[socket.id];
+    } catch (error) {
+      console.error("Error in disconnect:", error);
     }
   });
 });
+
 // Import the Quiz model
 
 app.post("/api/save-quiz", async (req, res) => {
