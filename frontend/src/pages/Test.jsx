@@ -12,6 +12,9 @@ export default function Test() {
   const [isHost, setIsHost] = useState(
     localStorage.getItem("role") === "admin"
   );
+  const [quizSubject, setQuizSubject] = useState("");
+  const [quizDifficulty, setQuizDifficulty] = useState("easy");
+
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("default"); // Add state for view: "default", "roomEntry", "quizUpload", "quizRender"
   useEffect(() => {
@@ -67,6 +70,35 @@ export default function Test() {
       </main>
     );
   }
+  const generateQuiz = async () => {
+    try {
+      if (!quizSubject.trim()) {
+        alert("Please enter a subject.");
+        return;
+      }
+
+      const response = await fetch("http://localhost:5000/api/init-quiz", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subjects: [quizSubject],
+          difficulty: quizDifficulty,
+          roomCode,
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setQuizData(data.quizData);
+        setView("quizRender");
+      } else {
+        alert(data.message || "Failed to generate quiz.");
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      alert("An error occurred while generating the quiz.");
+    }
+  };
 
   const renderContent = () => {
     switch (view) {
@@ -88,6 +120,49 @@ export default function Test() {
         );
       case "quizRender":
         return <QuizRenderer roomCode={roomCode} userId={userId} />;
+      case "generateAI":
+        return (
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-full max-w-md bg-white p-4 rounded-lg shadow-md">
+              <h2 className="text-lg font-semibold mb-2 text-center">
+                Generate Quiz via AI
+              </h2>
+
+              <input
+                type="text"
+                placeholder="Subject (e.g., Java)"
+                value={quizSubject}
+                onChange={(e) => setQuizSubject(e.target.value)}
+                className="w-full p-2 border rounded mb-2"
+              />
+
+              <select
+                value={quizDifficulty}
+                onChange={(e) => setQuizDifficulty(e.target.value)}
+                className="w-full p-2 border rounded mb-2"
+              >
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+
+              <button
+                className="w-full bg-indigo-600 text-white rounded px-4 py-2 hover:bg-indigo-700 transition"
+                onClick={generateQuiz}
+              >
+                Generate Quiz
+              </button>
+
+              <button
+                className="w-full mt-2 bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 transition"
+                onClick={() => setView("default")}
+              >
+                Back
+              </button>
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="flex flex-col items-center gap-4">
@@ -101,12 +176,20 @@ export default function Test() {
             </div>
 
             {isHost && (
-              <button
-                className="w-full max-w-md p-4 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-                onClick={() => setView("quizUpload")}
-              >
-                Upload Quiz
-              </button>
+              <div className="flex flex-col gap-2 w-full max-w-md">
+                <button
+                  className="w-full p-4 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                  onClick={() => setView("quizUpload")}
+                >
+                  Upload Quiz (Manual)
+                </button>
+                <button
+                  className="w-full p-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  onClick={() => setView("generateAI")}
+                >
+                  Generate AI Quiz
+                </button>
+              </div>
             )}
 
             <button

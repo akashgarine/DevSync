@@ -11,7 +11,7 @@ import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 const NavBar = () => {
   const nav = useNavigate();
   const location = useLocation();
-  const hideNavbarPaths = ["/signup", "/login"];
+  const hideNavbarPaths = ["/", "/signup", "/login"];
   const [value, setValue] = useState(0);
   const [isLogged, setIsLogged] = useState(
     localStorage.getItem("isLogin") === "true"
@@ -59,7 +59,12 @@ const NavBar = () => {
           indicatorColor="secondary"
           className="flex-grow"
         >
-          <Tab icon={<HomeIcon />} label="Home" component={Link} to="/" />
+          <Tab
+            icon={<HomeIcon />}
+            label="Dashboard"
+            component={Link}
+            to="/dashboard"
+          />
           <Tab
             icon={<CodeIcon />}
             label="Collab"

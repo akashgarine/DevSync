@@ -53,14 +53,11 @@ export function QuizUpload({ onQuizUpload, roomCode }) {
       const data = JSON.parse(jsonData);
       validateQuizData(data); // Ensure validation
       // change to onrender
-      const response = await fetch(
-        `https://codingassistant.onrender.com/api/save-quiz`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ roomCode, quizData: data }), // Ensure correct format
-        }
-      );
+      const response = await fetch(`http://localhost:5000/api/save-quiz`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ roomCode, quizData: data }), // Ensure correct format
+      });
 
       const result = await response.json();
       if (!response.ok) {

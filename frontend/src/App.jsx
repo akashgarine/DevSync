@@ -19,6 +19,7 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import VideoCall from "./pages/VideoCall";
+import Dashboard from "./pages/Dashboard";
 function App() {
   const [isLogin, setIsLogin] = useState(
     localStorage.getItem("isLogin") === "true"
@@ -90,6 +91,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Forums />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
             </ProtectedRoute>
           }
         />

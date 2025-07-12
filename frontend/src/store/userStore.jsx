@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import axios from "axios";
-const BASE = "https://codingassistant.onrender.com/";
-// const BASE = "https://codingassistant.onrender.com/";
+import { nanoid } from "nanoid";
+const BASE = "http://localhost:5000/";
+// const BASE = "http://localhost:5000/";
 export const userStore = create((set) => ({
   user: null,
   setUser: (user) => set({ user }),
@@ -13,6 +14,7 @@ export const userStore = create((set) => ({
 
     try {
       const response = await axios.post(`${BASE}signup`, userData);
+
       return response.data;
     } catch (error) {
       console.error(error);
@@ -26,6 +28,7 @@ export const userStore = create((set) => ({
     try {
       const response = await axios.post(`${BASE}login`, Udata);
       console.log(response);
+
       return response;
     } catch (error) {
       console.error(error);

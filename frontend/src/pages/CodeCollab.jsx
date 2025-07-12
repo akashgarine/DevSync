@@ -7,8 +7,8 @@ import { useNavigate } from "react-router-dom";
 import { RotateCcw, Eye } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-const socket = io.connect("https://codingassistant.onrender.com");
-// const  socket = io.connect("https://codingassistant.onrender.com");
+const socket = io.connect("http://localhost:5000");
+// const  socket = io.connect("http://localhost:5000");
 const CodeCollab = () => {
   const nav = useNavigate();
   const [value, setValue] = useState("");
@@ -75,7 +75,7 @@ const CodeCollab = () => {
       },
     ];
     setQuestions(dummyQuestions);
-    socket.emit("join-room", { roomCode: code, client });
+    socket.emit("join-room", { roomCode: code, userId: client });
 
     socket.on("editor", (change) => {
       if (change !== value && editorRef.current?.getValue() !== change) {
