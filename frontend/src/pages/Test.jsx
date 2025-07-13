@@ -77,15 +77,18 @@ export default function Test() {
         return;
       }
 
-      const response = await fetch("http://localhost:5000/api/init-quiz", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          subjects: [quizSubject],
-          difficulty: quizDifficulty,
-          roomCode,
-        }),
-      });
+      const response = await fetch(
+        "https://codingassistant.onrender.com/api/init-quiz",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            subjects: [quizSubject],
+            difficulty: quizDifficulty,
+            roomCode,
+          }),
+        }
+      );
 
       const data = await response.json();
       if (response.ok) {

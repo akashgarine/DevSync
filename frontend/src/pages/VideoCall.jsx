@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 
-const SERVER_URL = "http://localhost:5000";
+const SERVER_URL = "https://codingassistant.onrender.com";
 const roomCode = localStorage.getItem("roomCode");
 const userId = localStorage.getItem("userId");
 
@@ -236,40 +236,83 @@ const VideoCall = () => {
 
     setScreenSharing(false);
   };
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === "hidden") {
+        const video = localVideoRef.current;
+        if (
+          video &&
+          video.readyState >= 2 &&
+          document.pictureInPictureEnabled &&
+          !video.disablePictureInPicture
+        ) {
+          try {
+            await video.requestPictureInPicture();
+          } catch (err) {
+            console.warn("PiP failed:", err);
+          }
+        }
+      } else if (document.pictureInPictureElement) {
+        try {
+          await document.exitPictureInPicture();
+        } catch (err) {
+          console.warn("Exit PiP failed:", err);
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
 
   return (
-    <div style={{ textAlign: "center" }}>
-      <h2>Room: {roomCode}</h2>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: "20px",
-          flexWrap: "wrap",
-        }}
-      >
-        <div>
-          <h4>You</h4>
+    <div className="text-center min-h-screen bg-black text-white p-6">
+      <h2 className="text-2xl font-semibold mb-6">Room: {roomCode}</h2>
+
+      <div className="flex justify-center gap-5 flex-wrap">
+        <div className="resize overflow-hidden border-2 border-green-500 rounded-lg p-1">
+          <h4 className="text-lg font-medium mb-2">You</h4>
           <video
             ref={localVideoRef}
             autoPlay
             muted
             playsInline
-            style={{ width: "300px", border: "2px solid green" }}
+            className="w-full h-auto max-w-[400px] rounded-lg"
           />
         </div>
-        <div id="remote-videos"></div>
+
+        <div
+          id="remote-videos"
+          className="flex flex-wrap gap-4 justify-center"
+        />
       </div>
-      <div style={{ marginTop: "20px" }}>
-        <button onClick={toggleMute}>{isMuted ? "Unmute" : "Mute"}</button>
-        <button onClick={toggleCamera}>
+
+      <div className="mt-8 flex gap-4 justify-center flex-wrap">
+        <button
+          onClick={toggleMute}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+        >
+          {isMuted ? "Unmute" : "Mute"}
+        </button>
+        <button
+          onClick={toggleCamera}
+          className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition"
+        >
           {isCameraOff ? "Turn On Camera" : "Turn Off Camera"}
         </button>
-        <button onClick={toggleScreenShare}>
+        <button
+          onClick={toggleScreenShare}
+          className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition"
+        >
           {screenSharing ? "Stop Sharing" : "Share Screen"}
         </button>
       </div>
-      {!connected && <p>Connecting your media...</p>}
+
+      {!connected && (
+        <p className="mt-6 text-gray-400">Connecting your media...</p>
+      )}
     </div>
   );
 };

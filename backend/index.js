@@ -83,6 +83,7 @@ io.on("connection", (socket) => {
       console.log(1);
       io.to(roomCode).emit("user-joined", socket.id, connections[roomCode]);
       io.to(roomCode).emit("room-history", roomHistory[roomCode]);
+      io.to(roomCode).emit("room-users", rooms[roomCode].length);
 
       console.log(`User ${userId} joined room ${roomCode}`);
     } catch (error) {
@@ -140,7 +141,14 @@ io.on("connection", (socket) => {
       console.error("Error in text-message:", error);
     }
   });
+  socket.on("room-users", (roomCode) => {
+    const count = rooms[roomCode]?.length || 0;
+    io.to(roomCode).emit("room-users", count);
+  });
 
+  socket.on("ping-check", (cb) => {
+    cb(); // Immediately call the callback
+  });
   socket.on("leave-room", ({ code, client }) => {
     try {
       if (rooms[code]) {
@@ -157,6 +165,7 @@ io.on("connection", (socket) => {
           time: now,
           roomCode: code,
         });
+        io.to(code).emit("room-users", rooms[code]?.length || 0);
 
         io.to(code).emit("room-history", roomHistory[code]);
 
@@ -175,9 +184,11 @@ io.on("connection", (socket) => {
           connections[room] = connections[room].filter(
             (id) => id !== socket.id
           );
+          io.to(room).emit("room-users", connections[room]?.length || 0);
+
           io.to(room).emit("user-left", socket.id);
           console.log(`Notified room ${room} about user ${socket.id} leaving`);
-          // --- 🔥 Track disconnect as leave if known user ---
+
           const userId = Object.keys(users).find((id) => users[id] === room);
           if (userId) {
             const now = new Date().toISOString();
@@ -228,21 +239,34 @@ app.post("/api/init-quiz", async (req, res) => {
       console.error("❌ Failed to parse or repair JSON:", err.message);
       return res.status(500).json({ error: "Invalid JSON format from AI." });
     }
+    console.log(rawQuizData);
 
-    // Transform into your frontend-friendly format
-    const quizData = rawQuizData.map((item) => {
-      const options = item.options;
-      const correctIndex = options.indexOf(item.correctOption); // match by value
+    const newData = rawQuizData.map((q) => {
+      const correctIdx = q.options.indexOf(q.correctOption);
       return {
-        question: item.question,
-        options,
-        correctAnswer: correctIndex,
+        question: q.question,
+        options: q.options,
+        correctAnswer: correctIdx,
       };
     });
-
-    const savedQuiz = await Quiz.create({ roomCode, quizData });
-
-    res.json({ roomCode, quizData });
+    const data = Quiz.findOne({ roomCode });
+    if (data !== null) {
+      await Quiz.updateOne(
+        { roomCode },
+        { $set: { quizData: newData } },
+        { upsert: true }
+      );
+    } else {
+      const addQuiz = new Quiz({
+        roomCode,
+        quizData: newData,
+      });
+      await addQuiz.save();
+    }
+    res.json({
+      success: true,
+      message: "Quiz initialized and saved successfully!",
+    });
   } catch (error) {
     console.error("❌ Error generating quiz:", error);
     res.status(500).json({ error: "Failed to generate quiz." });
