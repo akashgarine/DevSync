@@ -80,29 +80,39 @@ const JoinCreate = () => {
 
   const togglePomodoro = () => setIsRunning((prev) => !prev);
 
-  const handleJoin = async () => {
+  const handleJoin = async (e) => {
+    e.preventDefault();
     try {
       const result = await join(roomCode);
       if (result.success) {
-        socket.emit("join-room", { roomCode, userId });
-        socket.emit("get-room-history", { roomCode, userId });
-        localStorage.setItem("roomCode", roomCode);
-        toast.success(`Joined room ${roomCode}`);
+        setTimeout(() => {
+          console.log("Emitting join-room:", { roomCode, userId });
+          socket.emit("join-room", { roomCode, userId });
+          localStorage.setItem("roomCode", roomCode);
+          socket.emit("get-room-history", { roomCode, userId });
+          toast.success(`You have successfully joined room ${roomCode}`);
+        }, 500);
       }
-    } catch {
-      toast.error("Invalid room code");
+    } catch (error) {
+      toast.error("Please check your room code");
     }
   };
-
-  const handleCreate = async () => {
+  const handleCreate = async (e) => {
+    e.preventDefault();
     const result = await create();
-    const newRoom = result.roomCode;
-    setRoomCode(newRoom);
-    localStorage.setItem("roomCode", newRoom);
-    await navigator.clipboard.writeText(newRoom);
-    toast.success("Room created and copied!");
-    socket.emit("join-room", { roomCode: newRoom, userId });
-    socket.emit("get-room-history", { roomCode: newRoom, userId });
+    if (result.message === "Please login first") {
+      toast.error("Please login first");
+    } else {
+      let room = result.roomCode;
+
+      setTimeout(() => {
+        toast.success("Please reload to receive your code");
+        socket.emit("join-room", { roomCode: room, userId });
+        socket.emit("get-room-history", { roomCode: room, userId });
+        console.log("room");
+      }, 1000);
+      await navigator.clipboard.writeText(room);
+    }
   };
 
   const handleSend = async () => {
