@@ -236,53 +236,21 @@ const VideoCall = () => {
 
     setScreenSharing(false);
   };
-  useEffect(() => {
-    const handleVisibilityChange = async () => {
-      if (document.visibilityState === "hidden") {
-        const video = localVideoRef.current;
-        if (
-          video &&
-          video.readyState >= 2 &&
-          document.pictureInPictureEnabled &&
-          !video.disablePictureInPicture
-        ) {
-          try {
-            await video.requestPictureInPicture();
-          } catch (err) {
-            console.warn("PiP failed:", err);
-          }
-        }
-      } else if (document.pictureInPictureElement) {
-        try {
-          await document.exitPictureInPicture();
-        } catch (err) {
-          console.warn("Exit PiP failed:", err);
-        }
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, []);
-
   return (
     <div className="text-center min-h-screen bg-black text-white p-6">
       <h2 className="text-2xl font-semibold mb-6">Room: {roomCode}</h2>
 
       <div className="flex justify-center gap-5 flex-wrap">
-        <div className="resize overflow-hidden border-2 border-green-500 rounded-lg p-1">
+        <div>
           <h4 className="text-lg font-medium mb-2">You</h4>
           <video
             ref={localVideoRef}
             autoPlay
             muted
             playsInline
-            className="w-full h-auto max-w-[400px] rounded-lg"
+            className="w-[300px] rounded-lg border-4 border-green-500 shadow-lg"
           />
         </div>
-
         <div
           id="remote-videos"
           className="flex flex-wrap gap-4 justify-center"
@@ -292,19 +260,19 @@ const VideoCall = () => {
       <div className="mt-8 flex gap-4 justify-center flex-wrap">
         <button
           onClick={toggleMute}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-200"
         >
           {isMuted ? "Unmute" : "Mute"}
         </button>
         <button
           onClick={toggleCamera}
-          className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition"
+          className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition duration-200"
         >
           {isCameraOff ? "Turn On Camera" : "Turn Off Camera"}
         </button>
         <button
           onClick={toggleScreenShare}
-          className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition"
+          className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition duration-200"
         >
           {screenSharing ? "Stop Sharing" : "Share Screen"}
         </button>
