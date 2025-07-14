@@ -17,19 +17,9 @@ const VideoCall = () => {
   const [screenSharing, setScreenSharing] = useState(false);
   const screenTrackRef = useRef(null);
 
+  // 🔧 Debug STUN-only config for now (replace later)
   const iceConfig = {
-    iceServers: [
-      {
-        urls: [
-          "stun:openrelay.metered.ca:80",
-          "turn:openrelay.metered.ca:80",
-          "turn:openrelay.metered.ca:443",
-          "turn:openrelay.metered.ca:443?transport=tcp",
-        ],
-        username: "openrelayproject",
-        credential: "openrelayproject",
-      },
-    ],
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
   };
 
   useEffect(() => {
@@ -39,7 +29,7 @@ const VideoCall = () => {
     });
 
     socketRef.current.on("connect", async () => {
-      console.log("Connected:", socketRef.current.id);
+      console.log("✅ Connected to socket:", socketRef.current.id);
 
       if (!userId) {
         localStorage.setItem("userId", socketRef.current.id);
@@ -54,7 +44,7 @@ const VideoCall = () => {
     });
 
     socketRef.current.on("user-joined", async (joinedUserId, allUsers) => {
-      console.log("User joined:", joinedUserId);
+      console.log("👤 User joined:", joinedUserId);
       setRemoteUsers((prev) => [...new Set([...prev, joinedUserId])]);
 
       if (joinedUserId === socketRef.current.id) return;
@@ -73,7 +63,7 @@ const VideoCall = () => {
     });
 
     socketRef.current.on("signal", async (fromId, message) => {
-      console.log("Signal from:", fromId, message);
+      console.log("📡 Signal from:", fromId, message);
 
       let peerConnection = peerConnectionsRef.current[fromId];
 
@@ -83,6 +73,7 @@ const VideoCall = () => {
       }
 
       if (message.type === "offer") {
+        console.log("📨 Received offer");
         await peerConnection.setRemoteDescription(
           new RTCSessionDescription(message)
         );
@@ -95,21 +86,23 @@ const VideoCall = () => {
           toId: fromId,
         });
       } else if (message.type === "answer") {
+        console.log("✅ Received answer");
         await peerConnection.setRemoteDescription(
           new RTCSessionDescription(message)
         );
       } else if (message.candidate) {
         try {
           const candidate = new RTCIceCandidate(message.candidate);
+          console.log("❄️ Adding ICE Candidate:", candidate);
           await peerConnection.addIceCandidate(candidate);
         } catch (err) {
-          console.error("ICE Candidate error:", err);
+          console.error("🚫 ICE Candidate error:", err);
         }
       }
     });
 
     socketRef.current.on("user-left", (id) => {
-      console.log("User left:", id);
+      console.log("👋 User left:", id);
       if (peerConnectionsRef.current[id]) {
         peerConnectionsRef.current[id].close();
         delete peerConnectionsRef.current[id];
@@ -133,13 +126,15 @@ const VideoCall = () => {
         audio: true,
       });
       localVideoRef.current.srcObject = stream;
+      console.log("🎥 Local media stream setup successful");
       setConnected(true);
     } catch (err) {
-      console.error("Media setup failed:", err);
+      console.error("❌ Media setup failed:", err);
     }
   };
 
   const createPeerConnection = (remoteUserId) => {
+    console.log("🔗 Creating peer connection for:", remoteUserId);
     const pc = new RTCPeerConnection(iceConfig);
 
     const localStream = localVideoRef.current?.srcObject;
@@ -151,6 +146,7 @@ const VideoCall = () => {
 
     pc.onicecandidate = (event) => {
       if (event.candidate) {
+        console.log("📤 Sending ICE candidate to", remoteUserId);
         socketRef.current.emit("signal", {
           roomCode,
           message: { candidate: event.candidate },
@@ -160,17 +156,26 @@ const VideoCall = () => {
     };
 
     pc.ontrack = (event) => {
-      if (!remoteVideosRef.current[remoteUserId]) {
-        remoteVideosRef.current[remoteUserId] = document.createElement("video");
-        remoteVideosRef.current[remoteUserId].autoplay = true;
-        remoteVideosRef.current[remoteUserId].playsInline = true;
-        remoteVideosRef.current[remoteUserId].style.width = "300px";
-        remoteVideosRef.current[remoteUserId].style.border = "2px solid red";
+      console.log("🎬 ontrack fired from", remoteUserId, event.streams[0]);
 
+      if (!remoteVideosRef.current[remoteUserId]) {
+        const video = document.createElement("video");
+        video.autoplay = true;
+        video.playsInline = true;
+        video.style.width = "300px";
+        video.style.border = "2px solid red";
+
+        remoteVideosRef.current[remoteUserId] = video;
         const container = document.getElementById("remote-videos");
-        container.appendChild(remoteVideosRef.current[remoteUserId]);
+        container.appendChild(video);
       }
-      remoteVideosRef.current[remoteUserId].srcObject = event.streams[0];
+
+      if (event.streams && event.streams[0]) {
+        remoteVideosRef.current[remoteUserId].srcObject = event.streams[0];
+        console.log("✅ Remote stream attached:", event.streams[0]);
+      } else {
+        console.warn("⚠️ No stream in ontrack event!");
+      }
     };
 
     return pc;
@@ -207,10 +212,7 @@ const VideoCall = () => {
           if (sender) sender.replaceTrack(screenTrackRef.current);
         });
 
-        screenTrackRef.current.onended = () => {
-          stopScreenShare();
-        };
-
+        screenTrackRef.current.onended = () => stopScreenShare();
         setScreenSharing(true);
       } catch (err) {
         console.error("Screen sharing failed:", err);
@@ -236,6 +238,7 @@ const VideoCall = () => {
 
     setScreenSharing(false);
   };
+
   return (
     <div className="text-center min-h-screen bg-black text-white p-6">
       <h2 className="text-2xl font-semibold mb-6">Room: {roomCode}</h2>
@@ -260,19 +263,19 @@ const VideoCall = () => {
       <div className="mt-8 flex gap-4 justify-center flex-wrap">
         <button
           onClick={toggleMute}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-200"
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
           {isMuted ? "Unmute" : "Mute"}
         </button>
         <button
           onClick={toggleCamera}
-          className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition duration-200"
+          className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
         >
           {isCameraOff ? "Turn On Camera" : "Turn Off Camera"}
         </button>
         <button
           onClick={toggleScreenShare}
-          className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition duration-200"
+          className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
         >
           {screenSharing ? "Stop Sharing" : "Share Screen"}
         </button>
