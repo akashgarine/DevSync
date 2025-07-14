@@ -17,9 +17,10 @@ const VideoCall = () => {
   const [screenSharing, setScreenSharing] = useState(false);
   const screenTrackRef = useRef(null);
 
-  // 🔧 Debug STUN-only config for now (replace later)
   const iceConfig = {
-    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+    iceServers: [
+      { urls: "stun:stun.l.google.com:19302" }, // Use full TURN servers in prod later
+    ],
   };
 
   useEffect(() => {
@@ -43,7 +44,7 @@ const VideoCall = () => {
       await setupMedia();
     });
 
-    socketRef.current.on("user-joined", async (joinedUserId, allUsers) => {
+    socketRef.current.on("user-joined", async (joinedUserId) => {
       console.log("👤 User joined:", joinedUserId);
       setRemoteUsers((prev) => [...new Set([...prev, joinedUserId])]);
 
@@ -74,9 +75,7 @@ const VideoCall = () => {
 
       if (message.type === "offer") {
         console.log("📨 Received offer");
-        await peerConnection.setRemoteDescription(
-          new RTCSessionDescription(message)
-        );
+        await peerConnection.setRemoteDescription(new RTCSessionDescription(message));
         const answer = await peerConnection.createAnswer();
         await peerConnection.setLocalDescription(answer);
 
@@ -87,9 +86,7 @@ const VideoCall = () => {
         });
       } else if (message.type === "answer") {
         console.log("✅ Received answer");
-        await peerConnection.setRemoteDescription(
-          new RTCSessionDescription(message)
-        );
+        await peerConnection.setRemoteDescription(new RTCSessionDescription(message));
       } else if (message.candidate) {
         try {
           const candidate = new RTCIceCandidate(message.candidate);
@@ -127,6 +124,11 @@ const VideoCall = () => {
       });
       localVideoRef.current.srcObject = stream;
       console.log("🎥 Local media stream setup successful");
+
+      stream.getVideoTracks().forEach((track) => {
+        console.log("📡 Local video track:", track.label, track.readyState);
+      });
+
       setConnected(true);
     } catch (err) {
       console.error("❌ Media setup failed:", err);
@@ -146,7 +148,6 @@ const VideoCall = () => {
 
     pc.onicecandidate = (event) => {
       if (event.candidate) {
-        console.log("📤 Sending ICE candidate to", remoteUserId);
         socketRef.current.emit("signal", {
           roomCode,
           message: { candidate: event.candidate },
@@ -162,19 +163,27 @@ const VideoCall = () => {
         const video = document.createElement("video");
         video.autoplay = true;
         video.playsInline = true;
+        video.muted = false; // remote user
         video.style.width = "300px";
         video.style.border = "2px solid red";
+        video.style.borderRadius = "8px";
+        video.style.display = "block";
+
+        video.onloadeddata = () => {
+          console.log(`✅ Remote video (${remoteUserId}) is playing`);
+        };
 
         remoteVideosRef.current[remoteUserId] = video;
         const container = document.getElementById("remote-videos");
         container.appendChild(video);
       }
 
-      if (event.streams && event.streams[0]) {
-        remoteVideosRef.current[remoteUserId].srcObject = event.streams[0];
+      const remoteVideo = remoteVideosRef.current[remoteUserId];
+
+      if (!remoteVideo.srcObject) {
+        remoteVideo.srcObject = event.streams[0];
+        remoteVideo.play().catch((e) => console.error("⚠️ Auto-play failed:", e));
         console.log("✅ Remote stream attached:", event.streams[0]);
-      } else {
-        console.warn("⚠️ No stream in ontrack event!");
       }
     };
 
@@ -184,27 +193,21 @@ const VideoCall = () => {
   const toggleMute = () => {
     const stream = localVideoRef.current?.srcObject;
     if (!stream) return;
-    stream
-      .getAudioTracks()
-      .forEach((track) => (track.enabled = !track.enabled));
+    stream.getAudioTracks().forEach((track) => (track.enabled = !track.enabled));
     setIsMuted((prev) => !prev);
   };
 
   const toggleCamera = () => {
     const stream = localVideoRef.current?.srcObject;
     if (!stream) return;
-    stream
-      .getVideoTracks()
-      .forEach((track) => (track.enabled = !track.enabled));
+    stream.getVideoTracks().forEach((track) => (track.enabled = !track.enabled));
     setIsCameraOff((prev) => !prev);
   };
 
   const toggleScreenShare = async () => {
     if (!screenSharing) {
       try {
-        const screenStream = await navigator.mediaDevices.getDisplayMedia({
-          video: true,
-        });
+        const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
         screenTrackRef.current = screenStream.getTracks()[0];
 
         Object.values(peerConnectionsRef.current).forEach((pc) => {
@@ -254,10 +257,7 @@ const VideoCall = () => {
             className="w-[300px] rounded-lg border-4 border-green-500 shadow-lg"
           />
         </div>
-        <div
-          id="remote-videos"
-          className="flex flex-wrap gap-4 justify-center"
-        />
+        <div id="remote-videos" className="flex flex-wrap gap-4 justify-center" />
       </div>
 
       <div className="mt-8 flex gap-4 justify-center flex-wrap">
@@ -281,9 +281,7 @@ const VideoCall = () => {
         </button>
       </div>
 
-      {!connected && (
-        <p className="mt-6 text-gray-400">Connecting your media...</p>
-      )}
+      {!connected && <p className="mt-6 text-gray-400">Connecting your media...</p>}
     </div>
   );
 };
