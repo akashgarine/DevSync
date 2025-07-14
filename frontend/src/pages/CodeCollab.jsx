@@ -75,7 +75,7 @@ const CodeCollab = () => {
       },
     ];
     setQuestions(dummyQuestions);
-    socket.emit("join-room", { roomCode: code, userId: client });
+    socket.emit("join-room", { roomCode: code, client });
 
     socket.on("editor", (change) => {
       if (change !== value && editorRef.current?.getValue() !== change) {

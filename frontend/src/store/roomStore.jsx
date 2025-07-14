@@ -15,13 +15,16 @@ const roomStore = create((set) => ({
   },
 
   join: async (roomCode) => {
-    const uid = localStorage.getItem("userId");
+    const uid = nanoid(4);
     if (!roomCode) return { message: "Enter a room Code" };
+
+    const userId = localStorage.setItem("userId", uid);
+    console.log(userId);
 
     try {
       const resp = await axios.post(`${BASE}join-room`, {
         roomCode: roomCode,
-        userId: uid,
+        userId: userId,
       });
       if (resp.data.success === false) {
         return { success: resp.data.success, message: resp.data.message };
@@ -40,7 +43,7 @@ const roomStore = create((set) => ({
 
   create: async () => {
     try {
-      const uid = localStorage.getItem("userId");
+      const uid = nanoid(4);
       if (!uid) {
         return { message: "Please login first" };
       }
@@ -56,11 +59,7 @@ const roomStore = create((set) => ({
 
         localStorage.setItem("roomCode", roomCode);
         console.log(localStorage.getItem("roomCode"));
-        return {
-          success: resp.data.success,
-          message: resp.data.message,
-          roomCode,
-        };
+        return { success: resp.data.success, message: resp.data.message };
       }
     } catch (err) {
       console.error(err);

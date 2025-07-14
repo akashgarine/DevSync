@@ -20,7 +20,7 @@ const Login = ({ setIsLogin }) => {
       console.log(formData.email, resp.token, resp.id, resp.role);
       localStorage.setItem("email", formData.email);
       localStorage.setItem("token", resp.data.token);
-      localStorage.setItem("userId", resp.data.userId);
+      localStorage.setItem("userId", resp.data.id);
       localStorage.setItem("role", resp.data.role);
       toast.success(resp.data.message);
       setTimeout(() => {
