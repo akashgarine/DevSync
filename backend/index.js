@@ -9,6 +9,9 @@ import { rooms, users } from "./sharedState/sharedState.js";
 import roomRoutes from "./routes/roomRoutes.js";
 import Quiz from "./models/Quiz.js"; // Fixed casing to match actual file
 import nodemailer from "nodemailer";
+import { generateQuiz } from "./ai-quiz.js";
+import { jsonrepair } from "jsonrepair";
+
 dotenv.config();
 
 const app = express();
@@ -33,6 +36,7 @@ const connectDB = async () => {
 };
 let timeOnline = {};
 let connections = {};
+let roomHistory = {};
 //Routes
 app.use("/", authRoutes);
 app.use("/", roomRoutes);
@@ -41,9 +45,11 @@ io.on("connection", (socket) => {
 
   socket.on("join-room", ({ roomCode, userId }) => {
     try {
+      socket.userId = userId;
+
       socket.join(roomCode);
       socket.roomCode = roomCode;
-
+      console.log("Join-room payload:", roomCode, userId);
       // Track users
       if (!rooms[roomCode]) rooms[roomCode] = [];
       if (!rooms[roomCode].includes(userId)) rooms[roomCode].push(userId);
@@ -56,14 +62,47 @@ io.on("connection", (socket) => {
       }
 
       timeOnline[socket.id] = new Date();
+
+      // --- 🔥 Track join in room history ---
+      if (!roomHistory[roomCode]) {
+        roomHistory[roomCode] = [];
+      }
+      const lastEvent = roomHistory[roomCode].slice(-1)[0];
+      if (
+        !lastEvent ||
+        lastEvent.userId !== userId ||
+        lastEvent.action !== "join"
+      ) {
+        roomHistory[roomCode].push({
+          userId,
+          roomCode, // ✅ Include room code
+          action: "join",
+          time: new Date().toISOString(),
+        });
+      }
+      console.log(1);
       io.to(roomCode).emit("user-joined", socket.id, connections[roomCode]);
+      io.to(roomCode).emit("room-history", roomHistory[roomCode]);
+      io.to(roomCode).emit("room-users", rooms[roomCode].length);
+
       console.log(`User ${userId} joined room ${roomCode}`);
     } catch (error) {
       console.error("Error in join-room:", error);
     }
   });
+  socket.on("get-room-history", ({ roomCode, userId }) => {
+    try {
+      console.log(`Sending room history for ${roomCode} to ${userId}`);
+      if (roomHistory[roomCode]) {
+        socket.emit("room-history", roomHistory[roomCode]); // ✅ Renamed
+      } else {
+        socket.emit("room-history", []);
+      }
+    } catch (err) {
+      console.error("Error sending room history:", err);
+    }
+  });
 
-  // Signaling for WebRTC
   socket.on("signal", ({ roomCode, message, toId }) => {
     try {
       if (toId) {
@@ -76,7 +115,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Collaborative cursor broadcasting
   socket.on("cursor-position", ({ userId, position }) => {
     try {
       const room = socket.roomCode;
@@ -88,7 +126,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Handle editor changes
   socket.on("editor", ({ change, code }) => {
     try {
       io.to(code).emit("editor", change);
@@ -97,7 +134,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Handle text messages
   socket.on("text-message", ({ message, client, code }) => {
     try {
       io.to(code).emit("text-message", { message, client });
@@ -105,14 +141,34 @@ io.on("connection", (socket) => {
       console.error("Error in text-message:", error);
     }
   });
+  socket.on("room-users", (roomCode) => {
+    const count = rooms[roomCode]?.length || 0;
+    io.to(roomCode).emit("room-users", count);
+  });
 
-  // Handle leaving a room
+  socket.on("ping-check", (cb) => {
+    cb(); // Immediately call the callback
+  });
   socket.on("leave-room", ({ code, client }) => {
     try {
       if (rooms[code]) {
         rooms[code] = rooms[code].filter((id) => id !== client);
         delete users[client];
         socket.leave(code);
+
+        // --- 🔥 Track leave in room history ---
+        const now = new Date().toISOString();
+        if (!roomHistory[code]) roomHistory[code] = [];
+        roomHistory[code].push({
+          userId: client,
+          action: "leave",
+          time: now,
+          roomCode: code,
+        });
+        io.to(code).emit("room-users", rooms[code]?.length || 0);
+
+        io.to(code).emit("room-history", roomHistory[code]);
+
         console.log(`User ${client} left room ${code}`);
       }
     } catch (error) {
@@ -120,7 +176,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Handle disconnection
   socket.on("disconnect", () => {
     console.log("Client disconnected:", socket.id);
     try {
@@ -129,8 +184,25 @@ io.on("connection", (socket) => {
           connections[room] = connections[room].filter(
             (id) => id !== socket.id
           );
+          io.to(room).emit("room-users", connections[room]?.length || 0);
+
           io.to(room).emit("user-left", socket.id);
           console.log(`Notified room ${room} about user ${socket.id} leaving`);
+
+          const userId = Object.keys(users).find((id) => users[id] === room);
+          if (userId) {
+            const now = new Date().toISOString();
+            if (!roomHistory[room]) roomHistory[room] = [];
+            roomHistory[room].push({
+              userId,
+              action: "leave",
+              time: now,
+            });
+
+            io.to(room).emit("room-history", roomHistory[room]);
+
+            delete users[userId];
+          }
         }
       }
       delete timeOnline[socket.id];
@@ -141,6 +213,65 @@ io.on("connection", (socket) => {
 });
 
 // Import the Quiz model
+app.post("/api/init-quiz", async (req, res) => {
+  try {
+    const { subjects, difficulty, roomCode } = req.body;
+
+    // Get LLM response
+    const response = await generateQuiz(subjects, difficulty);
+    const val = response.content;
+
+    // Extract code block from markdown-style JSON
+    const matches = [...val.matchAll(/```json\n([\s\S]*?)\n```/g)];
+
+    if (!matches.length) {
+      console.error("❌ No JSON code block found in response.");
+      return res.status(500).json({ error: "No JSON found in AI response." });
+    }
+
+    const jsonString = matches[0][1].trim();
+
+    let rawQuizData;
+    try {
+      const repaired = jsonrepair(jsonString);
+      rawQuizData = JSON.parse(repaired);
+    } catch (err) {
+      console.error("❌ Failed to parse or repair JSON:", err.message);
+      return res.status(500).json({ error: "Invalid JSON format from AI." });
+    }
+    console.log(rawQuizData);
+
+    const newData = rawQuizData.map((q) => {
+      const correctIdx = q.options.indexOf(q.correctOption);
+      return {
+        question: q.question,
+        options: q.options,
+        correctAnswer: correctIdx,
+      };
+    });
+    const data = Quiz.findOne({ roomCode });
+    if (data !== null) {
+      await Quiz.updateOne(
+        { roomCode },
+        { $set: { quizData: newData } },
+        { upsert: true }
+      );
+    } else {
+      const addQuiz = new Quiz({
+        roomCode,
+        quizData: newData,
+      });
+      await addQuiz.save();
+    }
+    res.json({
+      success: true,
+      message: "Quiz initialized and saved successfully!",
+    });
+  } catch (error) {
+    console.error("❌ Error generating quiz:", error);
+    res.status(500).json({ error: "Failed to generate quiz." });
+  }
+});
 
 app.post("/api/save-quiz", async (req, res) => {
   try {

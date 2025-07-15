@@ -1,4 +1,5 @@
-import { hash, compare } from "bcrypt";
+import { hash, compare } from 'bcryptjs';
+
 import pkg from "jsonwebtoken";
 const { sign } = pkg;
 import User from "../models/User.js";

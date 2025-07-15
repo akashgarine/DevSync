@@ -1,7 +1,7 @@
 import { Schema, model } from "mongoose";
 
 const quizSchema = new Schema({
-  roomCode: { type: String, required: true },
+  roomCode: { type: String, required: true,unique:true },
   quizData: [
     {
       question: { type: String, required: true },

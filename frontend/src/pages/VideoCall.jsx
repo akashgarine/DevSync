@@ -19,16 +19,7 @@ const VideoCall = () => {
 
   const iceConfig = {
     iceServers: [
-      {
-        urls: [
-          "stun:openrelay.metered.ca:80",
-          "turn:openrelay.metered.ca:80",
-          "turn:openrelay.metered.ca:443",
-          "turn:openrelay.metered.ca:443?transport=tcp",
-        ],
-        username: "openrelayproject",
-        credential: "openrelayproject",
-      },
+      { urls: "stun:stun.l.google.com:19302" }, // Use full TURN servers in prod later
     ],
   };
 
@@ -39,7 +30,7 @@ const VideoCall = () => {
     });
 
     socketRef.current.on("connect", async () => {
-      console.log("Connected:", socketRef.current.id);
+      console.log("✅ Connected to socket:", socketRef.current.id);
 
       if (!userId) {
         localStorage.setItem("userId", socketRef.current.id);
@@ -53,8 +44,8 @@ const VideoCall = () => {
       await setupMedia();
     });
 
-    socketRef.current.on("user-joined", async (joinedUserId, allUsers) => {
-      console.log("User joined:", joinedUserId);
+    socketRef.current.on("user-joined", async (joinedUserId) => {
+      console.log("👤 User joined:", joinedUserId);
       setRemoteUsers((prev) => [...new Set([...prev, joinedUserId])]);
 
       if (joinedUserId === socketRef.current.id) return;
@@ -73,7 +64,7 @@ const VideoCall = () => {
     });
 
     socketRef.current.on("signal", async (fromId, message) => {
-      console.log("Signal from:", fromId, message);
+      console.log("📡 Signal from:", fromId, message);
 
       let peerConnection = peerConnectionsRef.current[fromId];
 
@@ -83,9 +74,8 @@ const VideoCall = () => {
       }
 
       if (message.type === "offer") {
-        await peerConnection.setRemoteDescription(
-          new RTCSessionDescription(message)
-        );
+        console.log("📨 Received offer");
+        await peerConnection.setRemoteDescription(new RTCSessionDescription(message));
         const answer = await peerConnection.createAnswer();
         await peerConnection.setLocalDescription(answer);
 
@@ -95,21 +85,21 @@ const VideoCall = () => {
           toId: fromId,
         });
       } else if (message.type === "answer") {
-        await peerConnection.setRemoteDescription(
-          new RTCSessionDescription(message)
-        );
+        console.log("✅ Received answer");
+        await peerConnection.setRemoteDescription(new RTCSessionDescription(message));
       } else if (message.candidate) {
         try {
           const candidate = new RTCIceCandidate(message.candidate);
+          console.log("❄️ Adding ICE Candidate:", candidate);
           await peerConnection.addIceCandidate(candidate);
         } catch (err) {
-          console.error("ICE Candidate error:", err);
+          console.error("🚫 ICE Candidate error:", err);
         }
       }
     });
 
     socketRef.current.on("user-left", (id) => {
-      console.log("User left:", id);
+      console.log("👋 User left:", id);
       if (peerConnectionsRef.current[id]) {
         peerConnectionsRef.current[id].close();
         delete peerConnectionsRef.current[id];
@@ -133,13 +123,20 @@ const VideoCall = () => {
         audio: true,
       });
       localVideoRef.current.srcObject = stream;
+      console.log("🎥 Local media stream setup successful");
+
+      stream.getVideoTracks().forEach((track) => {
+        console.log("📡 Local video track:", track.label, track.readyState);
+      });
+
       setConnected(true);
     } catch (err) {
-      console.error("Media setup failed:", err);
+      console.error("❌ Media setup failed:", err);
     }
   };
 
   const createPeerConnection = (remoteUserId) => {
+    console.log("🔗 Creating peer connection for:", remoteUserId);
     const pc = new RTCPeerConnection(iceConfig);
 
     const localStream = localVideoRef.current?.srcObject;
@@ -160,17 +157,34 @@ const VideoCall = () => {
     };
 
     pc.ontrack = (event) => {
-      if (!remoteVideosRef.current[remoteUserId]) {
-        remoteVideosRef.current[remoteUserId] = document.createElement("video");
-        remoteVideosRef.current[remoteUserId].autoplay = true;
-        remoteVideosRef.current[remoteUserId].playsInline = true;
-        remoteVideosRef.current[remoteUserId].style.width = "300px";
-        remoteVideosRef.current[remoteUserId].style.border = "2px solid red";
+      console.log("🎬 ontrack fired from", remoteUserId, event.streams[0]);
 
+      if (!remoteVideosRef.current[remoteUserId]) {
+        const video = document.createElement("video");
+        video.autoplay = true;
+        video.playsInline = true;
+        video.muted = false; // remote user
+        video.style.width = "300px";
+        video.style.border = "2px solid red";
+        video.style.borderRadius = "8px";
+        video.style.display = "block";
+
+        video.onloadeddata = () => {
+          console.log(`✅ Remote video (${remoteUserId}) is playing`);
+        };
+
+        remoteVideosRef.current[remoteUserId] = video;
         const container = document.getElementById("remote-videos");
-        container.appendChild(remoteVideosRef.current[remoteUserId]);
+        container.appendChild(video);
       }
-      remoteVideosRef.current[remoteUserId].srcObject = event.streams[0];
+
+      const remoteVideo = remoteVideosRef.current[remoteUserId];
+
+      if (!remoteVideo.srcObject) {
+        remoteVideo.srcObject = event.streams[0];
+        remoteVideo.play().catch((e) => console.error("⚠️ Auto-play failed:", e));
+        console.log("✅ Remote stream attached:", event.streams[0]);
+      }
     };
 
     return pc;
@@ -179,27 +193,21 @@ const VideoCall = () => {
   const toggleMute = () => {
     const stream = localVideoRef.current?.srcObject;
     if (!stream) return;
-    stream
-      .getAudioTracks()
-      .forEach((track) => (track.enabled = !track.enabled));
+    stream.getAudioTracks().forEach((track) => (track.enabled = !track.enabled));
     setIsMuted((prev) => !prev);
   };
 
   const toggleCamera = () => {
     const stream = localVideoRef.current?.srcObject;
     if (!stream) return;
-    stream
-      .getVideoTracks()
-      .forEach((track) => (track.enabled = !track.enabled));
+    stream.getVideoTracks().forEach((track) => (track.enabled = !track.enabled));
     setIsCameraOff((prev) => !prev);
   };
 
   const toggleScreenShare = async () => {
     if (!screenSharing) {
       try {
-        const screenStream = await navigator.mediaDevices.getDisplayMedia({
-          video: true,
-        });
+        const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
         screenTrackRef.current = screenStream.getTracks()[0];
 
         Object.values(peerConnectionsRef.current).forEach((pc) => {
@@ -207,10 +215,7 @@ const VideoCall = () => {
           if (sender) sender.replaceTrack(screenTrackRef.current);
         });
 
-        screenTrackRef.current.onended = () => {
-          stopScreenShare();
-        };
-
+        screenTrackRef.current.onended = () => stopScreenShare();
         setScreenSharing(true);
       } catch (err) {
         console.error("Screen sharing failed:", err);
@@ -238,38 +243,45 @@ const VideoCall = () => {
   };
 
   return (
-    <div style={{ textAlign: "center" }}>
-      <h2>Room: {roomCode}</h2>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: "20px",
-          flexWrap: "wrap",
-        }}
-      >
+    <div className="text-center min-h-screen bg-black text-white p-6">
+      <h2 className="text-2xl font-semibold mb-6">Room: {roomCode}</h2>
+
+      <div className="flex justify-center gap-5 flex-wrap">
         <div>
-          <h4>You</h4>
+          <h4 className="text-lg font-medium mb-2">You</h4>
           <video
             ref={localVideoRef}
             autoPlay
             muted
             playsInline
-            style={{ width: "300px", border: "2px solid green" }}
+            className="w-[300px] rounded-lg border-4 border-green-500 shadow-lg"
           />
         </div>
-        <div id="remote-videos"></div>
+        <div id="remote-videos" className="flex flex-wrap gap-4 justify-center" />
       </div>
-      <div style={{ marginTop: "20px" }}>
-        <button onClick={toggleMute}>{isMuted ? "Unmute" : "Mute"}</button>
-        <button onClick={toggleCamera}>
+
+      <div className="mt-8 flex gap-4 justify-center flex-wrap">
+        <button
+          onClick={toggleMute}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          {isMuted ? "Unmute" : "Mute"}
+        </button>
+        <button
+          onClick={toggleCamera}
+          className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+        >
           {isCameraOff ? "Turn On Camera" : "Turn Off Camera"}
         </button>
-        <button onClick={toggleScreenShare}>
+        <button
+          onClick={toggleScreenShare}
+          className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+        >
           {screenSharing ? "Stop Sharing" : "Share Screen"}
         </button>
       </div>
-      {!connected && <p>Connecting your media...</p>}
+
+      {!connected && <p className="mt-6 text-gray-400">Connecting your media...</p>}
     </div>
   );
 };
