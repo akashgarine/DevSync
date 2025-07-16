@@ -13,6 +13,8 @@ import Home from "./pages/Home";
 import Forums from "./pages/Forums";
 import Auth from "./pages/Auth";
 import NavBar from "./pages/NavBar";
+import Sidebar from "./pages/SideBar";
+import ChatBot from "./pages/ChatBot";
 import NotFound from "./pages/NotFound";
 // import Room from "./pages/Room";
 // import QuizCreate from "./pages/QuizCreate";
@@ -48,7 +50,7 @@ function App() {
   return (
     <Router>
       <ToastContainer position="top-right" autoClose={2000} />
-      <NavBar />
+      <Sidebar/>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/signup" element={<SignUp />} />
@@ -104,9 +106,9 @@ function App() {
         />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      <ChatBot/>
     </Router>
   );
 }
 
 export default App;
-
