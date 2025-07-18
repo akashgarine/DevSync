@@ -12,7 +12,7 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import MeetingRoomRoundedIcon from "@mui/icons-material/MeetingRoomRounded";
 import FeaturePanels from "./FeaturesPanel.jsx";
 import JoinCreate from "./join-create.jsx";
-
+import Footer from "../pages/Footer.jsx";
 const Home = () => {
   const nav = useNavigate();
   const [introDone, setIntroDone] = useState(false);
@@ -175,6 +175,7 @@ const Home = () => {
       )}
 
       <ToastContainer />
+      <Footer/>
     </div>
   );
 };
