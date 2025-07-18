@@ -1,5 +1,3 @@
-// App.js
-
 import React, { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
@@ -9,9 +7,7 @@ import {
 } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 
-// --- Import your components and pages ---
-import Sidebar from "./pages/Sidebar"; // Adjust path as needed
-
+import Sidebar from "./pages/Sidebar";
 import Home from "./pages/Home";
 import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
@@ -23,22 +19,12 @@ import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import ChatBot from "./pages/ChatBot";
 
-// This new component will manage the entire page layout
 const AppLayout = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
 
-  // Define paths where the sidebar should not be displayed
   const hideSidebarPaths = ["/", "/signup", "/login"];
-  const shouldShowSidebar = !hideSidebarPaths.includes(location.pathname);
 
-  // Calculate the sidebar's width to use as a margin
-  const sidebarWidth = isSidebarOpen ? "200px" : "60px";
-  const [isLogin, setIsLogin] = useState(
-    localStorage.getItem("isLogin") === "true"
-  );
-
-  // Sync state with localStorage when it changes
   useEffect(() => {
     const handleStorageChange = () => {
       setIsLogin(localStorage.getItem("isLogin") === "true");
@@ -112,7 +98,6 @@ const AppLayout = () => {
   );
 };
 
-// Your App component now just sets up the Router
 const App = () => {
   return (
     <Router>
