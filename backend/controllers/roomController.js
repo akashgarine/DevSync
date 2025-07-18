@@ -1,6 +1,8 @@
 import { nanoid } from "nanoid";
 import { users, rooms } from "../sharedState/sharedState.js";
 import nodemailer from "nodemailer";
+import RoomHistory from "../models/RoomHistory.js";
+import chatHistory from "../models/chatRoom.js";
 
 export async function joinRoom(req, res) {
   const { userId } = req.body;
@@ -9,6 +11,20 @@ export async function joinRoom(req, res) {
     return res.status(404).json({ message: "Room not found", success: false });
   rooms[roomCode].push(userId);
   users[userId] = roomCode;
+  const foundRoom = await RoomHistory.findOne({roomCode});
+  const foundChat = await chatHistory.findOne({roomId : roomCode});
+  if(!foundRoom||!foundChat)  
+    return res.status(401).json({
+      message : "Enter a valid room"
+    }); 
+  foundRoom.events.push({
+    userId : userId,
+    action : "join",
+    time : Date.now()
+  });
+  foundChat.users.push(userId);
+  await foundChat.save();
+  await foundRoom.save();
   res
     .status(200)
     .json({ message: `User Joined ${userId} - ${userId} `, success: true });
@@ -16,11 +32,25 @@ export async function joinRoom(req, res) {
 
 export async function createRoom(req, res) {
   const { userId } = req.body;
+  //room create DB
+  console.log("userId",userId);
   try {
     const roomCode = nanoid(8);
     rooms[roomCode] = [];
     rooms[roomCode].push(userId);
     users[userId] = roomCode;
+    await RoomHistory.create({roomCode});
+    await chatHistory.create({roomId : roomCode});
+    const foundRoom = await RoomHistory.findOne({roomCode});
+    const foundChat = await chatHistory.findOne({roomId : roomCode});
+    foundRoom.events.push({
+      userId,
+      action : "join",
+      time : Date.now()
+    });
+    foundChat.users.push(userId);
+    await foundRoom.save();
+    await foundChat.save();
     return res
       .status(200)
       .json({ message: `Room created `, roomCode, success: true });

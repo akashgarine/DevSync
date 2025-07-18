@@ -11,6 +11,7 @@ import Quiz from "./models/Quiz.js"; // Fixed casing to match actual file
 import nodemailer from "nodemailer";
 import { generateQuiz } from "./ai-quiz.js";
 import { jsonrepair } from "jsonrepair";
+import chatHistory from "./models/chatRoom.js";
 
 dotenv.config();
 
@@ -43,12 +44,13 @@ app.use("/", roomRoutes);
 io.on("connection", (socket) => {
   console.log("Client connected with id:", socket.id);
 
-  socket.on("join-room", ({ roomCode, userId }) => {
+  socket.on("join-room", async ({ roomCode, userId }) => {
+    console.log("Hello");
     try {
       socket.userId = userId;
-
       socket.join(roomCode);
       socket.roomCode = roomCode;
+
       console.log("Join-room payload:", roomCode, userId);
       // Track users
       if (!rooms[roomCode]) rooms[roomCode] = [];
@@ -134,13 +136,36 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("text-message", ({ message, client, code }) => {
-    try {
-      io.to(code).emit("text-message", { message, client });
-    } catch (error) {
-      console.error("Error in text-message:", error);
+  socket.on("text-message", async ({ message, client, code }) => {
+  try {
+    console.log("Incoming message:", message, "from", client, "to room:", code);
+
+    io.to(code).emit("text-message", { message, client });
+
+    const foundRoom = await chatHistory.findOne({ roomId: code });
+
+    if (!foundRoom) {
+      console.error("No room found with roomId:", code);
+      return;
     }
-  });
+
+    foundRoom.chats.push({
+      sender: client,
+      content: message,
+      time: Date.now(),
+      status: {
+        delivered: true
+      }
+    });
+
+    await foundRoom.save();
+    console.log("Message saved to DB");
+
+  } catch (error) {
+    console.error("Error in text-message:", error);
+  }
+});
+
   socket.on("room-users", (roomCode) => {
     const count = rooms[roomCode]?.length || 0;
     io.to(roomCode).emit("room-users", count);
