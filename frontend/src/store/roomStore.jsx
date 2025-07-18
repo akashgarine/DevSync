@@ -24,7 +24,7 @@ const roomStore = create((set) => ({
     try {
       const resp = await axios.post(`${BASE}join-room`, {
         roomCode: roomCode,
-        userId: userId,
+        userId: uid,
       });
       if (resp.data.success === false) {
         return { success: resp.data.success, message: resp.data.message };
