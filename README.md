@@ -16,19 +16,35 @@
 ---
 
 ## 📁 Folder Structure
-
+```
 DevSync/
 ├── frontend
 ├── backend
 ├── README.md
-
+```
 
 ---
 
-## 🧪 Installation & Setup
+## 🧪 1Installation & Setup
 
 ### ⚙️ 1. Clone the Repository
 
 ```bash
 git clone https://github.com/your-username/DevSync.git
 cd DevSync
+```
+### 🚀 2. Backend Setup
+```bash
+cd backend
+npm install
+```
+Start the backend server:
+```bash
+npm run dev
+```
+### 🌐 3. Frontend Setup
+```bash
+cd ../frontend
+npm install
+npm run dev
+```
