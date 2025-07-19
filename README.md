@@ -17,4 +17,18 @@
 
 ## 📁 Folder Structure
 
+DevSync/
+├── frontend
+├── backend
+├── README.md
 
+
+---
+
+## 🧪 Installation & Setup
+
+### ⚙️ 1. Clone the Repository
+
+```bash
+git clone https://github.com/your-username/DevSync.git
+cd DevSync
