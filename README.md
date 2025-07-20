@@ -61,3 +61,4 @@ The frontend will be available at: [http://localhost:5173]
 
 ## 📬 Feedback
 Have suggestions, found a bug, or want to contribute?
+Feel free to open an issue or submit a pull request.
