@@ -30,7 +30,7 @@ const Footer = () => {
             </div>
           </div>
           <div className="mr-20">
-            <p className="text-lg mb-2 mr-2">© 2025 CivicSphere. All rights reserved.</p>
+            <p className="text-lg mb-2 mr-2">© 2025 DevSync. All rights reserved.</p>
           </div>
         </div>
       </div>
