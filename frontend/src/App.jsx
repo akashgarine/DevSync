@@ -49,6 +49,7 @@ function App() {
   return (
     <Router>
       <ToastContainer position="top-right" autoClose={2000} />
+      <TrailingCursor />
       <div className="relative flex min-h-screen bg-gray-100 dark:bg-gray-900">
         <Sidebar />
         <main className="flex-1 w-full transition-all duration-300">
