@@ -22,6 +22,7 @@ import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import VideoCall from "./pages/VideoCall";
 import Dashboard from "./pages/Dashboard";
+import TrailingCursor  from "./components/TrailingCursor";
 function App() {
   const [isLogin, setIsLogin] = useState(
     localStorage.getItem("isLogin") === "true"

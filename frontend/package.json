@@ -18,7 +18,6 @@
     "@mui/material": "^6.4.8",
     "@tldraw/tldraw": "^3.13.3",
     "axios": "^1.7.9",
-    "caniuse-lite": "^1.0.30001727",
     "codingassistant": "file:..",
     "framer-motion": "^12.23.0",
     "lodash": "^4.17.21",
