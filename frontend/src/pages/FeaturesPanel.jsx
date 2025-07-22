@@ -42,7 +42,7 @@ const features = [
 
 export default function FeaturePanel() {
   const total = features.length;
-  const radius = 520;
+  const radius = 500;
   const [paused, setPaused] = useState(false);
   const [hideCenter, setHideCenter] = useState(false);
   const carouselRef = useRef(null);

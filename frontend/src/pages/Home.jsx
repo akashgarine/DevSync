@@ -165,7 +165,7 @@ const Home = () => {
 
       {/* Features Section */}
       {introDone && (
-        <div className="pt-20 pb-32 px-4">
+        <div className="pt-10 pb-32 px-3">
           <h1 className="text-4xl md:text-5xl font-extrabold text-white text-center mt-10 mb-6 animate-pulse">
             Features which <span className="text-purple-400">DevSync</span>{" "}
             provides
