@@ -52,12 +52,11 @@ io.on("connection", (socket) => {
       socket.roomCode = roomCode;
 
       console.log("Join-room payload:", roomCode, userId);
-      // Track users
+
       if (!rooms[roomCode]) rooms[roomCode] = [];
       if (!rooms[roomCode].includes(userId)) rooms[roomCode].push(userId);
       users[userId] = roomCode;
 
-      // Track socket connections
       if (!connections[roomCode]) connections[roomCode] = [];
       if (!connections[roomCode].includes(socket.id)) {
         connections[roomCode].push(socket.id);
@@ -65,7 +64,6 @@ io.on("connection", (socket) => {
 
       timeOnline[socket.id] = new Date();
 
-      // --- 🔥 Track join in room history ---
       if (!roomHistory[roomCode]) {
         roomHistory[roomCode] = [];
       }
@@ -77,7 +75,7 @@ io.on("connection", (socket) => {
       ) {
         roomHistory[roomCode].push({
           userId,
-          roomCode, // ✅ Include room code
+          roomCode, 
           action: "join",
           time: new Date().toISOString(),
         });
