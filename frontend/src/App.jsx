@@ -22,6 +22,7 @@ import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import VideoCall from "./pages/VideoCall";
 import Dashboard from "./pages/Dashboard";
+import TrailingCursor  from "./components/TrailingCursor";
 function App() {
   const [isLogin, setIsLogin] = useState(
     localStorage.getItem("isLogin") === "true"
@@ -49,6 +50,7 @@ function App() {
   return (
     <Router>
       <ToastContainer position="top-right" autoClose={2000} />
+      <TrailingCursor />
       <div className="relative flex min-h-screen bg-gray-100 dark:bg-gray-900">
         <Sidebar />
         <main className="flex-1 w-full transition-all duration-300">
