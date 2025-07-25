@@ -27,7 +27,7 @@ function App() {
     localStorage.getItem("isLogin") === "true"
   );
 
-  useEffect(() => {
+     useEffect(() => {
     const handleStorageChange = () => {
       setIsLogin(localStorage.getItem("isLogin") === "true");
     };
