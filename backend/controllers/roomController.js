@@ -25,7 +25,7 @@ export async function joinRoom(req, res) {
     time: Date.now(),
   });
   await roomHistory.save();
-  
+
   await chatHistory.updateOne(
     { roomId: roomCode },
     { $addToSet: { users: userId } }
@@ -38,13 +38,11 @@ export async function joinRoom(req, res) {
 export async function createRoom(req, res) {
   const { userId } = req.body;
   //room create DB
-  console.log("userId",userId);
   try {
     const roomCode = nanoid(8);
     rooms[roomCode] = [];
     rooms[roomCode].push(userId);
     users[userId] = roomCode;
-    console.log("Room created with code:", roomCode);
     await RoomHistory.create({
       roomCode: roomCode,
       events: [
